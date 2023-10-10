@@ -1,0 +1,61 @@
+\documentclass[]{book}
+\usepackage{vub}
+
+\usepackage{color}
+
+\usepackage{tcolorbox}
+\tcbuselibrary{breakable}
+\usepackage{hyperref}
+\usepackage{footnote}
+\usepackage{pgfplots}
+\usepackage{csquotes}
+\usepackage[style=apa,sorting=nty]{biblatex}
+\addbibresource{citations.bib}
+
+% Note: `vub` and `bruface` packages are now interchangeable for articles/reports.
+\title{Proposal: Project Computational Geometry}
+\subtitle{Approximating geometry}
+\author{Andreas Declerck and Célian Glénaz}
+\faculty{Sciences and Bio-Engineering Sciences} % Note: without the word "Faculty"!
+\date{2023-2024}
+
+%% handy macros
+\newcommand*{\D}{\ensuremath{\mathcal{D}}}
+\newcommand*{\T}{\ensuremath{\mathcal{T}}}
+\newcommand*{\C}{\ensuremath{\mathcal{C}}}
+\newcommand*{\R}{\ensuremath{\mathbb{R}}}
+\newcommand*{\Q}{\ensuremath{\mathcal{Q}}}
+\newcommand*{\Z}{\ensuremath{\mathcal{Z}}}
+\newcommand*{\N}{\ensuremath{\mathcal{N}}}
+\renewcommand*{\L}{\ensuremath{\mathcal{L}}}
+\renewcommand*{\O}{\ensuremath{\mathcal{O}}}
+\renewcommand*{\o}{\ensuremath{o}}
+\newcommand*{\implies}{\ensuremath{\Longrightarrow}}
+\renewcommand*{\inf}{\ensuremath{\infty}}
+\newcommand*{\inherit}{\ensuremath{:<}}
+
+\newcommand*{\boxed}[1]
+{ \framebox{ \parbox[c]{0.9\textwidth}{
+            #1
+} } }
+
+\newenvironment{thoughts}[0]
+{\begin{tcolorbox}[breakable, title=Thoughts, colframe=red!75!black]
+    }
+    { 
+    \end{tcolorbox}
+    }
+
+\newcommand*{\citationneeded}{\colorbox{orange}{[CITATION NEEDED]}}
+% …
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+
+\nocite{*}
+\printbibliography
+
+\end{document}
