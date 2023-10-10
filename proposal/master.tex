@@ -52,8 +52,43 @@
 \begin{document}
 \maketitle
 
+\section{Introduction}
 
-\nocite{*}
+Our subject is about approximating geometric shapes with a set of convex hulls.
+The method we would like to study comes from the paper
+    [\cite{wei_approximate_2022}] which is used in software like \verb|Box2D|
+to accelerate collision detection.
+
+\section{Proposed project}
+
+The project will be to implement the algorithms presented in the paper
+    [\cite{wei_approximate_2022}].
+The first goal will be to transform a hardcoded 3D object into convex-hulls
+using these techniques.
+Then we will import 3D files with more complex geometry, like print-in-place
+objects used in 3D printing to validate its correctness.
+
+The application will be accompanied by some controls to influence the algorithm,
+and inspect the final object from several sides.
+
+At first, we will not try to implement the collision part, as making sure that the
+approximating algorithm is correct seems to be more important.
+Later when we are confident that the approximating algorithm is consistent enough
+with what we expect when comparing with the source model, collision detection
+queries might be added to the GUI.
+
+For this project we would like to implement it in
+\verb|Processing|\footnote{\url{https://processing.org/}} as it will make it
+easier to work with without having to worry about the \verb|JavaScript| engine
+being slow, and having easier access to accelerators like \verb|OpenGL| (full
+version).
+Doing the project in Java allows us also to get up and running more quickly as
+our knowledge is better in this language.
+
+We chose \verb|Processing| to still be close to the exercises seen in class, and
+being able to use Java at the same time.
+
+
 \printbibliography
 
 \end{document}
