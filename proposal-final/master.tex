@@ -1,0 +1,109 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[hidelinks]{hyperref}
+\usepackage{amsmath}
+\usepackage{calc}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{float}
+\usepackage[edges]{forest}
+\usepackage{tikz}
+\usepackage{algorithm} 
+\usepackage{algpseudocode}
+\usepackage{multirow}
+
+\usepackage[style=apa,sorting=nty]{biblatex}
+\addbibresource{citations.bib}
+
+\hypersetup{
+    colorlinks=false,
+    linkcolor=blue,
+    filecolor=magenta
+    }
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=java,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+% font
+\usepackage[T1]{fontenc}
+
+% math modules
+\usepackage{amsmath}
+%\usepackage{amsfonts}
+%\usepackage{amssymb}
+\usepackage{parskip}
+
+% images
+\usepackage{graphicx}
+
+% link
+\usepackage{hyperref}
+
+% floating objects
+%\usepackage{float}
+
+% Cover background
+\usepackage[top=2cm, bottom=2cm, outer=0cm, inner=0cm]{geometry}
+\usepackage[pages=some]{background}
+\backgroundsetup{
+scale=1,
+color=black,
+opacity=0.05,
+angle=10,
+position={12cm,-22cm},
+contents={%
+%   \includegraphics[height=20cm,width=20cm,keepaspectratio]{static/ULB-blason.png}
+  }%
+}
+\usepackage{fullpage}
+
+
+\begin{document}
+\BgThispage
+\include{cover}
+
+
+\clearpage
+\pagenumbering{arabic}
+
+\section{Proposal}
+
+For our project, we will construct an application demonstrating several
+algorithms for decomposing a simple polygon.
+This application will demonstrate the triangulation algorithm seen in class and the
+algorithm from Chazelle [\cite{chazelle_decomposing_1979}]. Both algorithm will
+be compared in their effectiveness for the construction of Minkowski sums
+    [\cite{agarwal_polygon_2002}].
+
+For this project we would like to implement it in
+\emph{Processing}\footnote{\url{https://processing.org/}} as it will make it
+easier to work with without having to worry about the \emph{JavaScript} engine
+being slow.
+Doing the project in Java allows us also to get up and running more quickly as
+our knowledge is better in this language.
+
+We chose \verb|Processing| to still be close to the exercises seen in class, and
+provide a visual representation of the discussed problem.
+
+\printbibliography
+
+\end{document}
