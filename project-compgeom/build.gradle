@@ -1,0 +1,37 @@
+plugins {
+    id 'java'
+}
+
+group = 'be.ulbvub'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation files(
+            "libs/processing-core/library/core.jar",
+            "libs/processing-core/library/gluegen-rt.jar",
+            "libs/processing-core/library/gluegen-rt-natives-linux-aarch64.jar",
+            "libs/processing-core/library/gluegen-rt-natives-linux-amd64.jar",
+            "libs/processing-core/library/gluegen-rt-natives-linux-armv6hf.jar",
+            "libs/processing-core/library/gluegen-rt-natives-linux-i586.jar",
+            "libs/processing-core/library/gluegen-rt-natives-macosx-universal.jar",
+            "libs/processing-core/library/gluegen-rt-natives-windows-i586.jar",
+            "libs/processing-core/library/jogl-all.jar",
+            "libs/processing-core/library/jogl-all-natives-linux-aarch64.jar",
+            "libs/processing-core/library/jogl-all-natives-linux-amd64.jar",
+            "libs/processing-core/library/jogl-all-natives-linux-arm6hf.jar",
+            "libs/processing-core/library/jogl-all-natives-linux-i586.jar",
+            "libs/processing-core/library/jogl-all-natives-macosx-universal.jar",
+            "libs/processing-core/library/jogl-all-natives-windows-amd64.jar",
+            "libs/processing-core/library/jogl-all-natives-windows-i586.jar",
+    )
+    testImplementation platform('org.junit:junit-bom:5.9.1')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}
