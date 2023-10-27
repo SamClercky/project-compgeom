@@ -89,10 +89,13 @@ contents={%
 
 For our project, we will construct an application demonstrating several
 algorithms for decomposing a simple polygon.
-This application will demonstrate the triangulation algorithm seen in class and the
-algorithm from Chazelle [\cite{chazelle_decomposing_1979}]. Both algorithm will
-be compared in their effectiveness for the construction of Minkowski sums
-    [\cite{agarwal_polygon_2002}].
+This application will demonstrate the triangulation algorithm seen in class,
+the algorithm from Chazelle [\cite{chazelle_decomposing_1979}], a greedy
+decomposition without Steiner points, an algorithm that decomposes a
+polygon into slabs along a certain direction and an algorithm that is based on
+KD-trees to decompose a polygon [\cite{agarwal_polygon_2002}]. All algorithm
+will be compared in their effectiveness for the construction of Minkowski sums
+[\cite{agarwal_polygon_2002}].
 
 For this project we would like to implement it in
 \emph{Processing}\footnote{\url{https://processing.org/}} as it will make it
@@ -103,6 +106,28 @@ our knowledge is better in this language.
 
 We chose \verb|Processing| to still be close to the exercises seen in class, and
 provide a visual representation of the discussed problem.
+
+\section{Work distribution}
+
+Celian:
+\begin{itemize}
+    \item Algorithm to calculate a Minkowski sum from a convex decomposition [\cite{agarwal_polygon_2002}]
+    \item Triangulation of simple polygon
+    \item Greedy convex decomposition [\cite{agarwal_polygon_2002}]
+\end{itemize}
+
+Andreas:
+\begin{itemize}
+    \item GUI
+    \item Slab decomposition [\cite{agarwal_polygon_2002}]
+    \item KD decomposition [\cite{agarwal_polygon_2002}]
+\end{itemize}
+
+Gilles:
+\begin{itemize}
+    \item Polynomial time algorithm for decomposing a polygon in its convex
+        parts [\cite{chazelle_decomposing_1979}]
+\end{itemize}
 
 \printbibliography
 
