@@ -16,7 +16,8 @@ public record DrawContext(
                 new DrawStyle()
                         .withFill(applet.color(255))
                         .withStroke(applet.color(0, 0, 0))
-                        .withPointSize(5),
+                        .withPointSize(5)
+                        .withTextColor(applet.color(0)),
                 new Region(new PVector(0, 0), new PVector(applet.width, applet.height)),
                 mouseClicked,
                 new PVector(applet.mouseX, applet.mouseY));
@@ -24,6 +25,10 @@ public record DrawContext(
 
     public void applyStyle() {
         style.apply(applet);
+    }
+
+    public void applyTextStyle() {
+        style.applyText(applet);
     }
 
     public boolean isInside(PVector point) {

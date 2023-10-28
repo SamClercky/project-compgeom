@@ -7,6 +7,7 @@ public class MainScreen extends PApplet {
     private PointDrawRegion polygonRegion;
     private MouseClickEvent mouseClicked = null;
     private Button btnSave;
+    private Button btnOpen;
 
     public MainScreen() {
         super();
@@ -23,7 +24,13 @@ public class MainScreen extends PApplet {
         polygonRegion = new PointDrawRegion();
         btnSave = new Button("Save", new PVector(10, 10), new PVector(50, 20));
         btnSave.setListener((evt) -> {
-            System.out.println(evt);
+            System.out.println("Save file...");
+            return null;
+        });
+
+        btnOpen = new Button("Open", new PVector(70, 10), new PVector(50, 20));
+        btnOpen.setListener((evt) -> {
+            System.out.println("Open file...");
             return null;
         });
     }
@@ -38,6 +45,7 @@ public class MainScreen extends PApplet {
         DrawRegion.apply(new PVector(0, 0), new PVector(width, headerHeight), context, (ctx) -> {
             ctx.fill(color(240));
             btnSave.draw(context);
+            btnOpen.draw(context);
             return null;
         });
         DrawRegion.apply(new PVector(0, headerHeight), new PVector(width, height - headerHeight), context, (ctx) -> {

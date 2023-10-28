@@ -35,7 +35,8 @@ public class Button implements Drawable {
         context.applyStyle();
         applet.rect(start.x, start.y, size.x, size.y);
 
-        applet.text(text, start.x, start.y);
+        context.applyTextStyle();
+        applet.text(text, start.x + 0.1f * size.x, start.y + size.y - 0.3f * size.y);
 
         if (listener != null && context.mouseClicked() != null && context.region().relativeRegion(start, size).isInside(context.mouseClicked().position())) {
             listener.apply(context.mouseClicked());

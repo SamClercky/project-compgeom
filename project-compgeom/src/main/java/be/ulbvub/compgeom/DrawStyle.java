@@ -5,11 +5,13 @@ import processing.core.PApplet;
 public class DrawStyle implements Cloneable {
     private int fill;
     private int stroke;
+    private int textColor;
     private float pointSize;
 
     public DrawStyle() {
         this.fill = 0;
         this.stroke = 0;
+        this.textColor = 0;
         pointSize = 5;
     }
 
@@ -28,9 +30,18 @@ public class DrawStyle implements Cloneable {
         return this;
     }
 
+    public DrawStyle withTextColor(int color) {
+        this.textColor = color;
+        return this;
+    }
+
     public void apply(PApplet context) {
         context.fill(fill);
         context.stroke(stroke);
+    }
+
+    public void applyText(PApplet context) {
+        context.fill(textColor);
     }
 
     public float getPointSize() {
