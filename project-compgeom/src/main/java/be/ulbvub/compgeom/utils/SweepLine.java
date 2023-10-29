@@ -51,7 +51,7 @@ public class SweepLine extends TreeSet<Line> {
         private final PMatrix2D matrix;
 
         public GenericComparator(PVector direction) {
-            matrix = new PMatrix2D(direction.x, direction.y, 0, direction.y, direction.x, 0);
+            matrix = Utils.getDirectionMatrix(direction);
         }
 
         @Override
