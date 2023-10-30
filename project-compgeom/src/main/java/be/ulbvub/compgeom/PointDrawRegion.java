@@ -3,6 +3,7 @@ package be.ulbvub.compgeom;
 import java.util.ArrayList;
 
 public class PointDrawRegion implements Drawable {
+
     private final Polygon polygon;
 
     public PointDrawRegion() {
@@ -17,4 +18,8 @@ public class PointDrawRegion implements Drawable {
         }
         polygon.draw(context);
     }
+    public Polygon getPolygon() {
+        return polygon;
+    }
+
 }

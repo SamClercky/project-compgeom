@@ -1,10 +1,13 @@
 package be.ulbvub.compgeom;
 
+import be.ulbvub.compgeom.triangles.TriangleDecomposition;
+import be.ulbvub.compgeom.utils.DoublyConnectedEdgeList;
 import processing.core.PApplet;
 import processing.core.PVector;
 
 public class MainScreen extends PApplet {
     private PointDrawRegion polygonRegion;
+    private DoublyConnectedEdgeList dcel;
     private MouseClickEvent mouseClicked = null;
     private Button btnSave;
     private Button btnOpen;
@@ -44,13 +47,20 @@ public class MainScreen extends PApplet {
         final var headerHeight = 40;
         DrawRegion.apply(new PVector(0, 0), new PVector(width, headerHeight), context, (ctx) -> {
             ctx.fill(color(240));
-            btnSave.draw(context);
-            btnOpen.draw(context);
+            btnSave.draw(ctx);
+            btnOpen.draw(ctx);
             return null;
         });
         DrawRegion.apply(new PVector(0, headerHeight), new PVector(width, height - headerHeight), context, (ctx) -> {
             ctx.fill(color(255));
             polygonRegion.draw(ctx);
+            int n = polygonRegion.getPolygon().getPoints().size();
+            if(n > 3 && (dcel == null || dcel.getVertices().size() != n)) {
+                dcel = TriangleDecomposition.triangulateYMonotonePolygon(polygonRegion.getPolygon());
+
+            }
+            if(dcel != null)
+                 dcel.draw(ctx);
             return null;
         });
     }

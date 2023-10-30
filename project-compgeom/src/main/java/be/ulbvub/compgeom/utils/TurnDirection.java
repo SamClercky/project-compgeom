@@ -16,6 +16,6 @@ public enum TurnDirection {
         PVector l = c.copy().sub(b);
 
         // Be careful as this formula assumes a right-handed axis-system
-        return (k.x * l.y - k.y * l.x) < 0 ? RIGHT : LEFT;
+        return (k.x * l.y - k.y * l.x) > 0 ? RIGHT : LEFT;
     }
 }
