@@ -35,7 +35,6 @@ public class TriangleDecomposition {
                 vertexInter = (vertexInter + n - 1) % n;
             }
         }
-        System.out.println("CanSee: " + Boolean.toString(itCan) + " bottom: " + Integer.toString(vertexBottom) + " top:" + Integer.toString(vertexTop));
         return itCan;
     }
 
