@@ -14,10 +14,11 @@ public class PointDrawRegion implements Drawable {
     public void draw(DrawContext context) {
         if (context.mouseClicked() != null) {
             final var point = context.region().toLocalPoint(context.mouseClicked().position());
-            polygon.getPoints().add(point);
+            polygon.points().add(point);
         }
         polygon.draw(context);
     }
+
     public Polygon getPolygon() {
         return polygon;
     }

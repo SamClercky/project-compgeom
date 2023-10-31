@@ -54,13 +54,13 @@ public class MainScreen extends PApplet {
         DrawRegion.apply(new PVector(0, headerHeight), new PVector(width, height - headerHeight), context, (ctx) -> {
             ctx.fill(color(255));
             polygonRegion.draw(ctx);
-            int n = polygonRegion.getPolygon().getPoints().size();
-            if(n > 3 && (dcel == null || dcel.getVertices().size() != n)) {
+            int n = polygonRegion.getPolygon().points().size();
+            if (n > 3 && (dcel == null || dcel.getVertices().size() != n)) {
                 dcel = TriangleDecomposition.triangulateYMonotonePolygon(polygonRegion.getPolygon());
 
             }
-            if(dcel != null)
-                 dcel.draw(ctx);
+            if (dcel != null)
+                dcel.draw(ctx);
             return null;
         });
     }
