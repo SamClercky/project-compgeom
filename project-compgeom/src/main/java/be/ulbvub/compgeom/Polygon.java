@@ -1,6 +1,7 @@
 package be.ulbvub.compgeom;
 
 import be.ulbvub.compgeom.utils.Line;
+import be.ulbvub.compgeom.utils.TurnDirection;
 import be.ulbvub.compgeom.utils.Utils;
 import processing.core.PVector;
 
@@ -205,6 +206,37 @@ public record Polygon(ArrayList<PVector> points) implements Drawable {
                 points.add(currIndex, newPoint);
             }
         }
+    }
+
+    /**
+     * Assumes that this polygon is a simple polygon without overlapping edges
+     * CAUTION: Do not modify the polygon while iterating or only manipulate the polygon through references and methods provided by the iterator.
+     *
+     * @return An iterator that iterates in ccw order. The iterator starts at the left most-point.
+     */
+    public Iterator<PVector> ccwIterator() {
+        final var leftmost = getLeftMostIndex();
+        final var point2 = getNextFromIndex(leftmost);
+        final var pointN = getPreviousFromIndex(leftmost);
+
+        switch (TurnDirection.orientation(point2, points.get(leftmost), pointN)) {
+            case STRAIGHT -> {
+                // All three points are on a straight line, but no edges nor points overlap
+                if (points.get(leftmost).y < point2.y) {
+                    return iterateFromBack(leftmost);
+                } else {
+                    return iterateFrom(leftmost);
+                }
+            }
+            case RIGHT -> {
+                return iterateFrom(leftmost);
+            }
+            case LEFT -> {
+                return iterateFromBack(leftmost);
+            }
+        }
+        assert false; // This statement should never be reachable
+        return null;
     }
 
     @Override
