@@ -3,6 +3,7 @@ package be.ulbvub.compgeom.utils;
 import processing.core.PVector;
 
 public enum TurnDirection {
+    STRAIGHT,
     LEFT,
     RIGHT;
 
@@ -16,6 +17,13 @@ public enum TurnDirection {
         PVector l = c.copy().sub(b);
 
         // Be careful as this formula assumes a right-handed axis-system
-        return (k.x * l.y - k.y * l.x) > 0 ? RIGHT : LEFT;
+        final var determinant = k.x * l.y - k.y * l.x;
+        if (determinant > 0) {
+            return RIGHT;
+        } else if (determinant == 0) {
+            return STRAIGHT;
+        } else {
+            return LEFT;
+        }
     }
 }
