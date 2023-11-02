@@ -11,7 +11,7 @@ public class Button implements Drawable {
     private Function<MouseClickEvent, Void> listener;
 
     public Button(String text, PVector start, PVector size) {
-        this.start = start;
+        this.start = start.copy().add(new PVector(10, 10));
         this.size = size;
         this.text = text;
     }
@@ -30,6 +30,9 @@ public class Button implements Drawable {
 
     @Override
     public void draw(DrawContext context) {
+        // claim space
+        context.claimRegion(size.copy().add(new PVector(start.x, start.y * 2)));
+
         final var applet = context.applet();
 
         context.applyStyle();
@@ -41,5 +44,6 @@ public class Button implements Drawable {
         if (listener != null && context.mouseClicked() != null && context.region().relativeRegion(start, size).isInside(context.mouseClicked().position())) {
             listener.apply(context.mouseClicked());
         }
+
     }
 }

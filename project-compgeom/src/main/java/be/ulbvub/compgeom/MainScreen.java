@@ -25,13 +25,15 @@ public class MainScreen extends PApplet {
     @Override
     public void setup() {
         polygonRegion = new PointDrawRegion();
-        btnSave = new Button("Save", new PVector(10, 10), new PVector(50, 20));
+//        btnSave = new Button("Save", new PVector(10, 10), new PVector(50, 20));
+        btnSave = new Button("Save", new PVector(0, 0), new PVector(50, 20));
         btnSave.setListener((evt) -> {
             System.out.println("Save file...");
             return null;
         });
 
-        btnOpen = new Button("Open", new PVector(70, 10), new PVector(50, 20));
+//        btnOpen = new Button("Open", new PVector(70, 10), new PVector(50, 20));
+        btnOpen = new Button("Open", new PVector(0, 0), new PVector(50, 20));
         btnOpen.setListener((evt) -> {
             System.out.println("Open file...");
             return null;
@@ -45,24 +47,28 @@ public class MainScreen extends PApplet {
         mouseClicked = null; // reset event
 
         final var headerHeight = 40;
-        DrawRegion.apply(new PVector(0, 0), new PVector(width, headerHeight), context, (ctx) -> {
-            ctx.fill(color(240));
-            btnSave.draw(ctx);
-            btnOpen.draw(ctx);
-            return null;
-        });
-        DrawRegion.apply(new PVector(0, headerHeight), new PVector(width, height - headerHeight), context, (ctx) -> {
-            ctx.fill(color(255));
-            polygonRegion.draw(ctx);
-            int n = polygonRegion.getPolygon().points().size();
-            if (n > 3 && (dcel == null || dcel.getVertices().size() != n)) {
-                dcel = TriangleDecomposition.triangulateYMonotonePolygon(polygonRegion.getPolygon());
+        HBox.with(context)
+                .draw((ctx) -> {
+                    ctx.fill(color(240));
+                    VBox.with(ctx)
+                            .draw((ctx1) -> {
+                                btnSave.draw(ctx1);
+                            })
+                            .draw((ctx2) -> {
+                                btnOpen.draw(ctx2);
+                            });
+                })
+                .draw((ctx) -> {
+                    ctx.fill(color(255));
+                    polygonRegion.draw(ctx);
+                    int n = polygonRegion.getPolygon().points().size();
+                    if (n > 3 && (dcel == null || dcel.getVertices().size() != n)) {
+                        dcel = TriangleDecomposition.triangulateYMonotonePolygon(polygonRegion.getPolygon());
 
-            }
-            if (dcel != null)
-                dcel.draw(ctx);
-            return null;
-        });
+                    }
+                    if (dcel != null)
+                        dcel.draw(ctx);
+                });
     }
 
     void drawBackground() {

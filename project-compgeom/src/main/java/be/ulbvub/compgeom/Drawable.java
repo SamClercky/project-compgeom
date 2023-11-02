@@ -1,13 +1,13 @@
 package be.ulbvub.compgeom;
 
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 public interface Drawable {
     default void draw(DrawContext context) {
     }
 
-    default void draw(DrawContext context, Function<DrawContext, Void> child) {
+    default void draw(DrawContext context, Consumer<DrawContext> child) {
         draw(context);
-        child.apply(context);
+        child.accept(context);
     }
 }

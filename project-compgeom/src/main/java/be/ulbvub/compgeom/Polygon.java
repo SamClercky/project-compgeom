@@ -83,6 +83,9 @@ public record Polygon(ArrayList<PVector> points) implements Drawable {
 
     @Override
     public void draw(DrawContext context) {
+        // claim all space by default as we do not have a fixed size on the polygon
+        context.claimRegion(context.size());
+
         context.applyStyle();
         final var applet = context.applet();
 

@@ -2,7 +2,7 @@ package be.ulbvub.compgeom;
 
 import processing.core.PVector;
 
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 public class TransformGuard implements Drawable {
     private PVector translation;
@@ -15,7 +15,7 @@ public class TransformGuard implements Drawable {
         this.scale = new PVector(1.0f, 1.0f);
     }
 
-    public static void apply(PVector translation, float rotationAngle, PVector scale, DrawContext context, Function<DrawContext, Void> child) {
+    public static void apply(PVector translation, float rotationAngle, PVector scale, DrawContext context, Consumer<DrawContext> child) {
         final var guard = new TransformGuard();
         guard.setTranslation(translation);
         guard.setRotationAngle(rotationAngle);
@@ -23,7 +23,7 @@ public class TransformGuard implements Drawable {
         guard.draw(context, child);
     }
 
-    public static void apply(PVector translation, DrawContext context, Function<DrawContext, Void> child) {
+    public static void apply(PVector translation, DrawContext context, Consumer<DrawContext> child) {
         final var guard = new TransformGuard();
         guard.setTranslation(translation);
         guard.draw(context, child);
@@ -53,7 +53,7 @@ public class TransformGuard implements Drawable {
     }
 
     @Override
-    public void draw(DrawContext context, Function<DrawContext, Void> child) {
+    public void draw(DrawContext context, Consumer<DrawContext> child) {
         final var applet = context.applet();
 
         // setup transformation
@@ -63,7 +63,7 @@ public class TransformGuard implements Drawable {
         applet.scale(scale.x, scale.y, 1.0f);
 
         // draw further
-        child.apply(context);
+        child.accept(context);
 
         // reset transformation
         applet.popMatrix();

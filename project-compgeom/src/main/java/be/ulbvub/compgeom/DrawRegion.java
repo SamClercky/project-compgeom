@@ -2,7 +2,7 @@ package be.ulbvub.compgeom;
 
 import processing.core.PVector;
 
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 public class DrawRegion implements Drawable {
     private final PVector size;
@@ -16,7 +16,11 @@ public class DrawRegion implements Drawable {
         guard.setTranslation(start);
     }
 
-    public static void apply(PVector start, PVector size, DrawContext context, Function<DrawContext, Void> child) {
+    public static void apply(Region region, DrawContext context, Consumer<DrawContext> child) {
+        apply(region.start(), region.size(), context, child);
+    }
+
+    public static void apply(PVector start, PVector size, DrawContext context, Consumer<DrawContext> child) {
         final var region = new DrawRegion(start, size);
         region.draw(context, child);
     }
@@ -27,14 +31,13 @@ public class DrawRegion implements Drawable {
     }
 
     @Override
-    public void draw(DrawContext context, Function<DrawContext, Void> child) {
+    public void draw(DrawContext context, Consumer<DrawContext> child) {
         guard.draw(context, (ctx) -> {
             var newContext = context.withStart(start).withSize(size);
             if (newContext.mouseClicked() != null && !newContext.isInside(newContext.mouseClicked().position())) {
                 newContext = newContext.consumeEvent(start);
             }
-            child.apply(newContext);
-            return null;
+            child.accept(newContext);
         });
     }
 }
