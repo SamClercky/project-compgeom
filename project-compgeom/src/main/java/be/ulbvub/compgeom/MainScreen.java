@@ -60,14 +60,17 @@ public class MainScreen extends PApplet {
                 })
                 .draw((ctx) -> {
                     ctx.fill(color(255));
-                    polygonRegion.draw(ctx);
-                    int n = polygonRegion.getPolygon().points().size();
-                    if (n > 3 && (dcel == null || dcel.getVertices().size() != n)) {
-                        dcel = TriangleDecomposition.triangulateYMonotonePolygon(polygonRegion.getPolygon());
+                    StackBox.with(ctx)
+                            .draw((ctx1) -> {
+                                polygonRegion.draw(ctx);
+                                int n = polygonRegion.getPolygon().points().size();
+                                if (n > 3 && (dcel == null || dcel.getVertices().size() != n)) {
+                                    dcel = TriangleDecomposition.triangulateYMonotonePolygon(polygonRegion.getPolygon());
 
-                    }
-                    if (dcel != null)
-                        dcel.draw(ctx);
+                                }
+                                if (dcel != null)
+                                    dcel.draw(ctx);
+                            });
                 });
     }
 
