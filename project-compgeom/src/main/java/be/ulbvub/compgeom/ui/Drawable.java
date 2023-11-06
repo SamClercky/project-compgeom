@@ -1,4 +1,4 @@
-package be.ulbvub.compgeom;
+package be.ulbvub.compgeom.ui;
 
 import java.util.function.Consumer;
 

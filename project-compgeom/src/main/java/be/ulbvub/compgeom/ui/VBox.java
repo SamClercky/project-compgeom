@@ -1,5 +1,6 @@
-package be.ulbvub.compgeom;
+package be.ulbvub.compgeom.ui;
 
+import be.ulbvub.compgeom.utils.Region;
 import be.ulbvub.compgeom.utils.Utils;
 import processing.core.PVector;
 

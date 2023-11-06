@@ -1,6 +1,7 @@
 package be.ulbvub.compgeom;
 
 import be.ulbvub.compgeom.triangles.TriangleDecomposition;
+import be.ulbvub.compgeom.ui.*;
 import be.ulbvub.compgeom.utils.DoublyConnectedEdgeList;
 import processing.core.PApplet;
 import processing.core.PVector;

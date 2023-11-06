@@ -1,6 +1,5 @@
-package be.ulbvub.compgeom;
+package be.ulbvub.compgeom.utils;
 
-import be.ulbvub.compgeom.utils.Utils;
 import processing.core.PVector;
 
 public record Region(PVector start, PVector size) {

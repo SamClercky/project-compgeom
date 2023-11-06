@@ -1,4 +1,4 @@
-package be.ulbvub.compgeom;
+package be.ulbvub.compgeom.ui;
 
 import processing.core.PVector;
 

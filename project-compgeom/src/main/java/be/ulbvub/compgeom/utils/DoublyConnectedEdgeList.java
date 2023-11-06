@@ -1,10 +1,9 @@
 package be.ulbvub.compgeom.utils;
 
-import be.ulbvub.compgeom.DrawContext;
-import be.ulbvub.compgeom.Drawable;
+import be.ulbvub.compgeom.ui.DrawContext;
+import be.ulbvub.compgeom.ui.Drawable;
 import processing.core.PVector;
 
-import javax.swing.*;
 import java.util.ArrayList;
 
 public class DoublyConnectedEdgeList implements Drawable {

@@ -1,5 +1,7 @@
 package be.ulbvub.compgeom;
 
+import be.ulbvub.compgeom.ui.DrawContext;
+import be.ulbvub.compgeom.ui.Drawable;
 import be.ulbvub.compgeom.utils.Line;
 import be.ulbvub.compgeom.utils.TurnDirection;
 import be.ulbvub.compgeom.utils.Utils;

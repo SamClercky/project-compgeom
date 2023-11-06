@@ -1,5 +1,8 @@
-package be.ulbvub.compgeom;
+package be.ulbvub.compgeom.ui;
 
+import be.ulbvub.compgeom.Polygon;
+import be.ulbvub.compgeom.ui.DrawContext;
+import be.ulbvub.compgeom.ui.Drawable;
 import processing.core.PVector;
 
 import java.util.ArrayList;
