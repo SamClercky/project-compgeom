@@ -1,10 +1,13 @@
 package be.ulbvub.compgeom;
 
+import be.ulbvub.compgeom.slab.SlabDecomposition;
 import be.ulbvub.compgeom.triangles.TriangleDecomposition;
 import be.ulbvub.compgeom.ui.*;
 import be.ulbvub.compgeom.utils.DoublyConnectedEdgeList;
 import processing.core.PApplet;
 import processing.core.PVector;
+
+import javax.swing.*;
 
 public class MainScreen extends PApplet {
     private PointDrawRegion polygonRegion;
@@ -48,6 +51,34 @@ public class MainScreen extends PApplet {
 
         btnDecompose = new Button("Decompose", new PVector(0, 0), new PVector(90, 20));
         btnDecompose.setListener((evt) -> {
+            final var frame = new DecompositionConfigFrame(polygonRegion.getPolygon());
+            frame.open();
+            frame.setListener((config) -> {
+                if (config instanceof DecompositionConfig.TriangulationConfig c) {
+                    if (c.polygon().points().size() > 3) {
+                        dcel = TriangleDecomposition.triangulateYMonotonePolygon(polygonRegion.getPolygon());
+                    } else {
+                        JOptionPane.showMessageDialog(
+                                frame,
+                                "Not enough vertices to successfully do a decomposition",
+                                "Decomposition failed",
+                                JOptionPane.ERROR_MESSAGE);
+                    }
+                } else if (config instanceof DecompositionConfig.SlabConfig c) {
+                    if (c.polygon().points().size() > 3) {
+                         final var algorithm = new SlabDecomposition(c.direction(), c.polygon());
+                         algorithm.buildEventQueue(c.polygon());
+                         algorithm.run();
+                         // TODO: print result to screen
+                    } else {
+                        JOptionPane.showMessageDialog(
+                                frame,
+                                "Not enough vertices to successfully do a decomposition",
+                                "Decomposition failed",
+                                JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            });
             System.out.println("Decomposing polygon");
             return null;
         });
