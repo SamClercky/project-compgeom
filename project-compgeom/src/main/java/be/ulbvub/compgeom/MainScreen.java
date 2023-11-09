@@ -4,10 +4,13 @@ import be.ulbvub.compgeom.slab.SlabDecomposition;
 import be.ulbvub.compgeom.triangles.TriangleDecomposition;
 import be.ulbvub.compgeom.ui.*;
 import be.ulbvub.compgeom.utils.DoublyConnectedEdgeList;
+import be.ulbvub.compgeom.utils.PolygonReader;
+import be.ulbvub.compgeom.utils.PolygonWriter;
 import processing.core.PApplet;
 import processing.core.PVector;
 
 import javax.swing.*;
+import java.util.ArrayList;
 
 public class MainScreen extends PApplet {
     private PointDrawRegion polygonRegion;
@@ -17,6 +20,7 @@ public class MainScreen extends PApplet {
     private Button btnOpen;
     private Button btnDecompose;
     private Button btnExplain;
+    private Button btnReset;
 
     public MainScreen() {
         super();
@@ -31,22 +35,27 @@ public class MainScreen extends PApplet {
     @Override
     public void setup() {
         polygonRegion = new PointDrawRegion();
-        polygonRegion.setListener((newPoint, polygon) -> {
-            if (polygon.points().size() > 3) {
-                dcel = TriangleDecomposition.triangulateYMonotonePolygon(polygonRegion.getPolygon());
-            }
-        });
+//        polygonRegion.setListener((newPoint, polygon) -> {
+//            if (polygon.points().size() > 3) {
+//                dcel = TriangleDecomposition.triangulateYMonotonePolygon(polygonRegion.getPolygon());
+//            }
+//        });
 
         btnSave = new Button("Save", new PVector(0, 0), new PVector(50, 20));
         btnSave.setListener((evt) -> {
             System.out.println("Save file...");
-            return null;
+            final var polygon = polygonRegion.getPolygon();
+            final var writer = new PolygonWriter(polygon);
+            writer.openFileDialog();
         });
 
         btnOpen = new Button("Open", new PVector(0, 0), new PVector(50, 20));
         btnOpen.setListener((evt) -> {
             System.out.println("Open file...");
-            return null;
+            final var reader = new PolygonReader();
+            reader.openFileDialog();
+            polygonRegion.setPolygon(reader.getPolygon());
+            dcel = null;
         });
 
         btnDecompose = new Button("Decompose", new PVector(0, 0), new PVector(90, 20));
@@ -80,13 +89,17 @@ public class MainScreen extends PApplet {
                 }
             });
             System.out.println("Decomposing polygon");
-            return null;
         });
 
         btnExplain = new Button("Explain", new PVector(0, 0), new PVector(60, 20));
         btnExplain.setListener((evt) -> {
             System.out.println("Explain decomposition algorithm (tutorial part)");
-            return null;
+        });
+
+        btnReset = new Button("Reset", new PVector(0, 0), new PVector(60, 20));
+        btnReset.setListener((evt) -> {
+            polygonRegion.setPolygon(new Polygon(new ArrayList<>()));
+            dcel = null;
         });
     }
 
@@ -96,7 +109,6 @@ public class MainScreen extends PApplet {
         final var context = DrawContext.fromApplet(this, mouseClicked);
         mouseClicked = null; // reset event
 
-        final var headerHeight = 40;
         HBox.with(context)
                 .draw((ctx) -> {
                     ctx.fill(color(240));
@@ -104,15 +116,17 @@ public class MainScreen extends PApplet {
                             .draw((ctx1) -> btnSave.draw(ctx1))
                             .draw((ctx2) -> btnOpen.draw(ctx2))
                             .draw((ctx3) -> btnDecompose.draw(ctx3))
-                            .draw((ctx4) -> btnExplain.draw(ctx4));
+                            .draw((ctx4) -> btnExplain.draw(ctx4))
+                            .draw((ctx5) -> btnReset.draw(ctx5));
                 })
                 .draw((ctx) -> {
                     ctx.fill(color(255));
                     StackBox.with(ctx)
                             .draw((ctx1) -> {
-                                polygonRegion.draw(ctx);
                                 if (dcel != null)
                                     dcel.draw(ctx);
+                                else
+                                    polygonRegion.draw(ctx);
                             }).draw((ctx2) -> {
                                 // Draw statistics
                                 final var applet = ctx2.applet();

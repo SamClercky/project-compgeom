@@ -21,7 +21,7 @@ public class PolygonReader {
 
     public void openFileDialog() {
         final var dialog = new JFileChooser();
-        final var filter = new FileNameExtensionFilter("Polygon description files", ".poly");
+        final var filter = new FileNameExtensionFilter("Polygon description files", "poly");
         dialog.setFileFilter(filter);
 
         final var status = dialog.showOpenDialog(null);
@@ -57,7 +57,7 @@ public class PolygonReader {
 
         final var buffer = new BufferedReader(new FileReader(file));
         var line = buffer.readLine();
-        while (!line.isEmpty()) {
+        while (line != null && !line.isEmpty()) {
             var point = line.split(";");
 
             try {

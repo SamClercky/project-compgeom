@@ -10,7 +10,7 @@ import java.util.function.BiConsumer;
 
 public class PointDrawRegion implements Drawable {
 
-    private final Polygon polygon;
+    private Polygon polygon;
     private BiConsumer<PVector, Polygon> listener;
 
     public PointDrawRegion() {
@@ -26,13 +26,18 @@ public class PointDrawRegion implements Drawable {
         if (context.mouseClicked() != null) {
             final var point = context.region().toLocalPoint(context.mouseClicked().position());
             polygon.points().add(point);
-            listener.accept(point, polygon);
+            if (listener != null)
+                listener.accept(point, polygon);
         }
         polygon.draw(context);
     }
 
     public Polygon getPolygon() {
         return polygon;
+    }
+
+    public void setPolygon(Polygon polygon) {
+        this.polygon = polygon;
     }
 
 }

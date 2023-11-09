@@ -2,13 +2,14 @@ package be.ulbvub.compgeom.ui;
 
 import processing.core.PVector;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class Button implements Drawable {
     private final PVector start;
     private final PVector size;
     private String text;
-    private Function<MouseClickEvent, Void> listener;
+    private Consumer<MouseClickEvent> listener;
 
     public Button(String text, PVector start, PVector size) {
         this.start = start.copy().add(new PVector(10, 10));
@@ -24,7 +25,7 @@ public class Button implements Drawable {
         this.text = text;
     }
 
-    public void setListener(Function<MouseClickEvent, Void> listener) {
+    public void setListener(Consumer<MouseClickEvent> listener) {
         this.listener = listener;
     }
 
@@ -42,7 +43,7 @@ public class Button implements Drawable {
         applet.text(text, start.x + 0.1f * size.x, start.y + size.y - 0.3f * size.y);
 
         if (listener != null && context.mouseClicked() != null && context.region().relativeRegion(start, size).isInside(context.mouseClicked().position())) {
-            listener.apply(context.mouseClicked());
+            listener.accept(context.mouseClicked()); ;
         }
 
     }

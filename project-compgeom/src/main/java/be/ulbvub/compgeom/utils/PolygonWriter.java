@@ -19,7 +19,7 @@ public class PolygonWriter {
 
     public void openFileDialog() {
         final var dialog = new JFileChooser();
-        final var filter = new FileNameExtensionFilter("Polygon description files", ".poly");
+        final var filter = new FileNameExtensionFilter("Polygon description files", "poly");
         dialog.setFileFilter(filter);
 
         final var status = dialog.showSaveDialog(null);
@@ -49,6 +49,9 @@ public class PolygonWriter {
     }
 
     public void writeFile(File file) throws IOException {
+        if (!file.exists() && !file.createNewFile()) {
+            throw new IOException("Could not create a new file");
+        }
         if (!file.isFile() || !file.canWrite()) {
             throw new IOException("Path is not a file or is not writable");
         }
