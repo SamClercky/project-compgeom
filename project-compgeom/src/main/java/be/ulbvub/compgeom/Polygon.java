@@ -240,8 +240,8 @@ public record Polygon(ArrayList<PVector> points) implements Drawable {
                 return iterateFromBack(leftmost);
             }
         }
-        assert false; // This statement should never be reachable
-        return null;
+
+        throw new IllegalStateException();
     }
 
     @Override

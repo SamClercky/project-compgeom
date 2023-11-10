@@ -25,75 +25,34 @@ public class SlabDecomposition {
     public void buildEventQueue(Polygon polygon) {
         if (polygon.points().isEmpty()) return;
 
-        // We will start from the left-most along a certain direction but optimize along the x-axis
-        var leftMostIndex = direction.equals(new PVector(1, 0)) ? polygon.getLeftMostIndex() : polygon.getLeftMostAlongDirection(direction);
-
-        // Determine if we need to inverse the left/right logic
-        var pointN = polygon.getPreviousFromIndex(leftMostIndex);
-        var point2 = polygon.getNextFromIndex(leftMostIndex);
-        var ccwIterator = (pointN.y < point2.y) ? polygon.iterateFromBack(leftMostIndex) : polygon.iterateFrom(leftMostIndex);
-        var slidingIterator = new SlidingIterator<>(3, ccwIterator);
-
-        // process the first point
-        var firstPoint = ccwIterator.next();
-        var firstReason = EventTypes.Start;
-        firstReason.edges().add(new Line(pointN, firstPoint));
-        firstReason.edges().add(new Line(firstPoint, point2));
-        queue.add(new Event<>() {
-            @Override
-            public PVector getPoint() {
-                return firstPoint;
-            }
-
-            @Override
-            public EventTypes getReason() {
-                return EventTypes.Start;
-            }
-        });
-
+        var slidingIterator = new SlidingIterator<>(3, polygon.ccwIterator());
 
         while (slidingIterator.hasNext()) {
             var pointWindow = slidingIterator.next();
-            var prevPoint = pointWindow[0];
-            var currPoint = pointWindow[1];
-            var nextPoint = pointWindow[2];
+            var prevPoint = pointWindow.get(0);
+            var currPoint = pointWindow.get(1);
+            var nextPoint = pointWindow.get(2);
 
             // TODO: Generalize for all directions, now only X-axis
             EventTypes reason = null;
-            if (prevPoint.y <= currPoint.y && nextPoint.y <= currPoint.y) {
-                switch (TurnDirection.orientation(prevPoint, currPoint, nextPoint)) {
-                    case LEFT -> {
-                        reason = EventTypes.NormalPoint;
-                    }
-                    case RIGHT -> {
-                        reason = EventTypes.ReflexPoint;
-                    }
-                }
-            } else if (prevPoint.y > currPoint.y && nextPoint.y > currPoint.y) {
-                switch (TurnDirection.orientation(prevPoint, currPoint, nextPoint)) {
-                    case LEFT -> {
-                        reason = EventTypes.NormalPoint;
-                    }
-                    case RIGHT -> {
-                        reason = EventTypes.ReflexPoint;
-                    }
-                }
-            } else if (prevPoint.x <= currPoint.x && nextPoint.x <= currPoint.x) {
-                switch (TurnDirection.orientation(prevPoint, currPoint, nextPoint)) {
-                    case LEFT -> {
-                        reason = EventTypes.Join;
-                    }
-                    case RIGHT -> {
-                        reason = EventTypes.End;
-                    }
-                }
-            } else if (prevPoint.x > currPoint.x && nextPoint.x > currPoint.x) {
-                switch (TurnDirection.orientation(prevPoint, currPoint, nextPoint)) {
-                    case LEFT -> {
-                        reason = EventTypes.Split;
-                    }
-                    case RIGHT -> {
+
+            switch (TurnDirection.orientation(prevPoint, currPoint, nextPoint)) {
+                case LEFT -> {
+                    if (currPoint.x <= prevPoint.x && currPoint.x <= nextPoint.x) {
                         reason = EventTypes.Start;
+                    } else if (currPoint.x >= prevPoint.x && currPoint.x >= nextPoint.x) {
+                        reason = EventTypes.End;
+                    } else {
+                        reason = EventTypes.NormalPoint;
+                    }
+                }
+                case RIGHT -> {
+                    if (currPoint.x <= prevPoint.x && currPoint.x <= nextPoint.x) {
+                        reason = EventTypes.Join;
+                    } else if (currPoint.x >= prevPoint.x && currPoint.x >= nextPoint.x) {
+                        reason = EventTypes.Split;
+                    } else {
+                        reason = EventTypes.ReflexPoint;
                     }
                 }
             }
@@ -115,6 +74,10 @@ public class SlabDecomposition {
                 }
             });
         }
+    }
+
+    public EventQueue<EventTypes, Event<EventTypes>> getQueue() {
+        return this.queue;
     }
 
     public ArrayList<Polygon> run() {

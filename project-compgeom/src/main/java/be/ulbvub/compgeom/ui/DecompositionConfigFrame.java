@@ -5,7 +5,6 @@ import processing.core.PVector;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -34,7 +33,8 @@ public class DecompositionConfigFrame extends JFrame {
             switch ((String) Objects.requireNonNull(algorithmSelector.getSelectedItem())) {
                 case "Triangulation" -> config.add(new TriangulationConfigPane());
                 case "Slab decomposition" -> config.add(new SlabConfigPane());
-                default -> {}
+                default -> {
+                }
             }
             pack();
         });
@@ -46,7 +46,13 @@ public class DecompositionConfigFrame extends JFrame {
         btnConfirm.addActionListener((evt) -> {
             System.out.println("Configuration confirmed, ready for decomposition");
             if (config != null && listener != null) {
-                listener.accept(((ConfigPanel) config.getComponent(0)).config(polygon));
+                final var components = config.getComponents();
+                final var component = components.length == 1 ? components[0] : null;
+                if (component instanceof ConfigPanel cp) {
+                    listener.accept(cp.config(polygon));
+                } else {
+                    listener.accept(null);
+                }
             }
             this.dispose();
         });
@@ -80,6 +86,7 @@ public class DecompositionConfigFrame extends JFrame {
     private static class SlabConfigPane extends ConfigPanel {
         private final JTextField fieldX;
         private final JTextField fieldY;
+
         public SlabConfigPane() {
             final var layout = new GridLayout(2, 2, 5, 5);
             setLayout(layout);
