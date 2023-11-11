@@ -151,6 +151,8 @@ public class DoublyConnectedEdgeList implements Drawable {
 
         twin.setNext(extendedTwin);
         twin.setTwin(extendedEdge);
+
+        vertex.setLeavingEdge(extendedEdge);
     }
 
     //Add an edge between two vertices and update everything.
