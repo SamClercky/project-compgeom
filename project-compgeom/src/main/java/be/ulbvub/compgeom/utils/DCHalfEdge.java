@@ -1,7 +1,5 @@
 package be.ulbvub.compgeom.utils;
 
-import processing.core.PVector;
-
 public class DCHalfEdge {
 
     private DCHalfEdge twin;
@@ -9,18 +7,16 @@ public class DCHalfEdge {
     private DCVertex origin;
     private DCFace face;
 
-    public DCHalfEdge(){}
-    public DCHalfEdge(DCVertex origin){
+    public DCHalfEdge() {
+    }
+
+    public DCHalfEdge(DCVertex origin) {
         this.origin = origin;
     }
 
 
-    public DCVertex getDestination(){
+    public DCVertex getDestination() {
         return this.next.origin;
-    }
-
-    public DCHalfEdge getPrevious(){
-        return this.twin.next.twin;
     }
 
     public DCHalfEdge getTwin() {
@@ -33,6 +29,10 @@ public class DCHalfEdge {
 
     public DCHalfEdge getNext() {
         return next;
+    }
+
+    public DCHalfEdge getPrev() {
+        return DoublyConnectedEdgeList.getPrevEdgeOfFace(origin, face);
     }
 
     public void setNext(DCHalfEdge next) {
