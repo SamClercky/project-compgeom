@@ -1,10 +1,12 @@
 package be.ulbvub.compgeom.utils;
 
+import be.ulbvub.compgeom.Polygon;
 import be.ulbvub.compgeom.ui.DrawContext;
 import be.ulbvub.compgeom.ui.Drawable;
 import processing.core.PVector;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class DoublyConnectedEdgeList implements Drawable {
 
@@ -12,10 +14,14 @@ public class DoublyConnectedEdgeList implements Drawable {
     ArrayList<DCVertex> vertices = new ArrayList<DCVertex>();
     ArrayList<DCFace> faces = new ArrayList<DCFace>();
 
-    //take as argument a list of connected points
-    public DoublyConnectedEdgeList(ArrayList<PVector> points){
+    public DoublyConnectedEdgeList(Polygon polygon) {
+        this(polygon.points());
+    }
 
-        if(!points.isEmpty()) {
+    //take as argument a list of connected points
+    public DoublyConnectedEdgeList(ArrayList<PVector> points) {
+
+        if (!points.isEmpty()) {
             DCFace face = new DCFace();
             faces.add(face);
             DCHalfEdge prevEdge = null;
@@ -37,10 +43,10 @@ public class DoublyConnectedEdgeList implements Drawable {
                 currTwin.setNext(prevTwin);
                 currVertex.setLeavingEdge(currEdge);
 
-                if(prevEdge != null)
+                if (prevEdge != null)
                     prevEdge.setNext(currEdge);
 
-                if(prevTwin != null)
+                if (prevTwin != null)
                     prevTwin.setOrigin(currVertex);
 
                 prevEdge = currEdge;
@@ -64,13 +70,13 @@ public class DoublyConnectedEdgeList implements Drawable {
       How it works :
       Try on incoming edge, if it is not on the correct face, try another one (rotate on edges)
        */
-    public DCHalfEdge getPrevEdgeOfFace(DCVertex vertex, DCFace face){
+    public DCHalfEdge getPrevEdgeOfFace(DCVertex vertex, DCFace face) {
 
         DCHalfEdge twin = vertex.getLeavingEdge().getTwin();
         DCHalfEdge edge = twin.getNext().getTwin();
         //if there is only one face, "edge" is the previous edge
-        while(edge != twin){
-            if(edge.getFace() == face)
+        while (edge != twin) {
+            if (edge.getFace() == face)
                 return edge;
             edge = edge.getNext().getTwin();//rotate
         }
@@ -78,19 +84,19 @@ public class DoublyConnectedEdgeList implements Drawable {
         return twin;
     }
 
-    public DCFace getCommonFace(DCVertex vertex1, DCVertex vertex2){
-        if(vertex1.getLeavingEdge().getFace() == vertex2.getLeavingEdge().getFace()){
+    public DCFace getCommonFace(DCVertex vertex1, DCVertex vertex2) {
+        if (vertex1.getLeavingEdge().getFace() == vertex2.getLeavingEdge().getFace()) {
             return vertex1.getLeavingEdge().getFace();
         }
         DCHalfEdge firstTwin = vertex1.getLeavingEdge().getTwin();
         //we need to test all incoming edges pair and find the pair with matching faces
         DCHalfEdge currEdge1 = firstTwin.getNext().getTwin();
         //start with second twin, end with first (after a completing the loop on each edges)
-        while(currEdge1 != firstTwin){
+        while (currEdge1 != firstTwin) {
             DCHalfEdge firstTwin2 = vertex2.getLeavingEdge().getTwin();
             DCHalfEdge currEdge2 = firstTwin2.getNext().getTwin();
-            while(currEdge2 != firstTwin2){
-                if(currEdge1.getFace() == currEdge2.getFace())
+            while (currEdge2 != firstTwin2) {
+                if (currEdge1.getFace() == currEdge2.getFace())
                     return currEdge1.getFace();
                 currEdge2 = currEdge2.getNext().getTwin();
             }
@@ -99,8 +105,56 @@ public class DoublyConnectedEdgeList implements Drawable {
         return firstTwin.getFace();//TODO check if correct
     }
 
+    /**
+     * Inserts a vertex at the given position on the given half edge.
+     * Assumption is made that adding the vertex, the graph that is
+     * being represented by the DCEL still remains a planar graph and
+     * no overlapping is happening.
+     * <p>
+     * Go from:
+     * <pre>
+     * <--- edge ---
+     * --- twin --->
+     * </pre>
+     * to:
+     * <pre>
+     * <--- exEdge --- vertex <--- edge   ---
+     * --- twin   ---> vertex ---> exTwin ---
+     * </pre>
+     *
+     * @param edge     The edge on which to insert the new vertex. Should already be present in the DCEL
+     * @param position The position the vertex is inserted at
+     */
+    public void addVertex(DCHalfEdge edge, PVector position) {
+        // Assert some invariants
+        Objects.requireNonNull(edge.getTwin(), "Edge should have a twin");
+        Objects.requireNonNull(edge.getOrigin(), "Edge should be part of a DCEL");
+        Objects.requireNonNull(edge.getTwin().getOrigin(), "Twin should be part of a DCEL");
+
+        final var vertex = new DCVertex(position);
+        final var twin = edge.getTwin();
+
+        // Define the extensions
+        final var extendedTwin = new DCHalfEdge(vertex);
+        extendedTwin.setTwin(edge);
+        extendedTwin.setFace(twin.getFace());
+        extendedTwin.setNext(twin.getNext());
+
+        final var extendedEdge = new DCHalfEdge(vertex);
+        extendedEdge.setTwin(twin);
+        extendedEdge.setFace(edge.getFace());
+        extendedEdge.setNext(edge.getNext());
+
+        // Update edge and twin to finalize the link
+        edge.setNext(extendedEdge);
+        edge.setTwin(extendedTwin);
+
+        twin.setNext(extendedTwin);
+        twin.setTwin(extendedEdge);
+    }
+
     //Add an edge between two vertices and update everything.
-    public void addEdge(DCVertex vertex1, DCVertex vertex2){
+    public void addEdge(DCVertex vertex1, DCVertex vertex2) {
         /*
                 New face
           v1 -----topEdge----->
@@ -135,7 +189,7 @@ public class DoublyConnectedEdgeList implements Drawable {
 
         //now update all half-edges of the new face
         DCHalfEdge currEdge = topEdge.getNext();
-        while(currEdge != topEdge){
+        while (currEdge != topEdge) {
             currEdge.setFace(newFace);
             currEdge = currEdge.getNext();
         }
@@ -145,7 +199,7 @@ public class DoublyConnectedEdgeList implements Drawable {
         edges.add(bottomEdge);
     }
 
-    public void addEdge(int idxVertex1, int idxVertex2){
+    public void addEdge(int idxVertex1, int idxVertex2) {
         DCVertex vertex1 = vertices.get(idxVertex1);
         DCVertex vertex2 = vertices.get(idxVertex2);
         this.addEdge(vertex1, vertex2);
@@ -157,9 +211,9 @@ public class DoublyConnectedEdgeList implements Drawable {
         final var applet = context.applet();
 
 
-        applet.fill(0,0,255);
+        applet.fill(0, 0, 255);
 
-        int i =0;
+        int i = 0;
         for (var vertex : vertices) {
             applet.circle(vertex.getPoint().x, vertex.getPoint().y, context.style().getPointSize());
             applet.text(Integer.toString(i), vertex.getPoint().x + 5, vertex.getPoint().y + 5);
