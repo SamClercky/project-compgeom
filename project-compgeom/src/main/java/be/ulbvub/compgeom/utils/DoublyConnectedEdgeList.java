@@ -3,10 +3,12 @@ package be.ulbvub.compgeom.utils;
 import be.ulbvub.compgeom.Polygon;
 import be.ulbvub.compgeom.ui.DrawContext;
 import be.ulbvub.compgeom.ui.Drawable;
+import processing.core.PConstants;
 import processing.core.PVector;
 
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.Random;
 
 public class DoublyConnectedEdgeList implements Drawable {
 
@@ -153,6 +155,19 @@ public class DoublyConnectedEdgeList implements Drawable {
         twin.setTwin(extendedEdge);
     }
 
+    public ArrayList<DCVertex> getVerticesOfFace(DCFace face){
+        ArrayList<DCVertex> points = new ArrayList<>();
+        DCHalfEdge refEdge = face.getRefEdge();
+        DCHalfEdge currEdge = refEdge;
+        do{
+            DCVertex currVertex = currEdge.getOrigin();
+            points.add(currVertex);
+            currEdge = currEdge.getNext();
+        }while (currEdge != refEdge);
+        return points;
+    }
+
+
     //Add an edge between two vertices and update everything.
     public void addEdge(DCVertex vertex1, DCVertex vertex2) {
         /*
@@ -167,7 +182,6 @@ public class DoublyConnectedEdgeList implements Drawable {
 
         DCHalfEdge topEdge = new DCHalfEdge();
         DCHalfEdge bottomEdge = new DCHalfEdge();
-        newFace.setRefEdge(topEdge);
 
         DCHalfEdge prev1 = getPrevEdgeOfFace(vertex1, existingFace);
         DCHalfEdge prev2 = getPrevEdgeOfFace(vertex2, existingFace);
@@ -186,6 +200,9 @@ public class DoublyConnectedEdgeList implements Drawable {
 
         prev1.setNext(topEdge);
         prev2.setNext(bottomEdge);
+
+        newFace.setRefEdge(topEdge);
+        existingFace.setRefEdge(bottomEdge);
 
         //now update all half-edges of the new face
         DCHalfEdge currEdge = topEdge.getNext();
@@ -211,13 +228,20 @@ public class DoublyConnectedEdgeList implements Drawable {
         final var applet = context.applet();
 
 
-        applet.fill(0, 0, 255);
+        Random rand = new Random();
+        for(DCFace face : faces){
 
-        int i = 0;
-        for (var vertex : vertices) {
-            applet.circle(vertex.getPoint().x, vertex.getPoint().y, context.style().getPointSize());
-            applet.text(Integer.toString(i), vertex.getPoint().x + 5, vertex.getPoint().y + 5);
-            i++;
+            rand.setSeed(face.hashCode());
+            applet.fill(rand.nextInt(50,200),rand.nextInt(50,200),rand.nextInt(50,200));
+            applet.beginShape();
+            int i =0;
+            for(DCVertex vertex : this.getVerticesOfFace(face)){
+                float x = vertex.getPoint().x;
+                float y = vertex.getPoint().y;
+                applet.vertex(x,y);
+                i++;
+            }
+            applet.endShape(PConstants.CLOSE);
         }
 
         for (DCHalfEdge edge : edges) {

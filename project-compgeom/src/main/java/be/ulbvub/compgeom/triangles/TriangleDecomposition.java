@@ -1,11 +1,11 @@
 package be.ulbvub.compgeom.triangles;
 
 import be.ulbvub.compgeom.Polygon;
-import be.ulbvub.compgeom.utils.DoublyConnectedEdgeList;
+import be.ulbvub.compgeom.utils.*;
 import processing.core.PVector;
 
-import java.util.ArrayList;
-import java.util.Stack;
+import java.sql.Array;
+import java.util.*;
 
 import static be.ulbvub.compgeom.utils.TurnDirection.*;
 
@@ -17,52 +17,274 @@ public class TriangleDecomposition {
         return index > topIdx == index > bottomIdx;
     }
 
-    private static boolean canSee(int vertexBottom, int vertexTop, ArrayList<PVector> points) {
+    private static boolean canSee(int vertexBottom, int vertexTop, ArrayList<DCVertex> points) {
         int n = points.size();
-        PVector bottomVec = points.get(vertexBottom);
-        PVector topVec = points.get(vertexTop);
+        PVector bottomVec = points.get(vertexBottom).getPoint();
+        PVector topVec = points.get(vertexTop).getPoint();
         boolean itCan = true;
         if (vertexBottom < vertexTop) {
             int vertexInter = vertexBottom + 1;
             while (itCan && vertexInter != vertexTop) {
-                itCan = orientation(bottomVec, points.get(vertexInter), topVec) == LEFT;
+                itCan = orientation(bottomVec, points.get(vertexInter).getPoint(), topVec) == LEFT;
                 vertexInter++;
             }
         } else {
             int vertexInter = (vertexBottom + n - 1) % n;// vertexBottom - 1 (mod) n
             while (itCan && vertexInter != vertexTop) {
-                itCan = orientation(bottomVec, points.get(vertexInter), topVec) == RIGHT;
+                itCan = orientation(bottomVec, points.get(vertexInter).getPoint(), topVec) == RIGHT;
                 vertexInter = (vertexInter + n - 1) % n;
             }
         }
         return itCan;
     }
 
+
+    public enum VertexType {
+        START,
+        SPLIT,
+        END,
+        MERGE,
+        REGULAR
+    }
+
+    private static VertexType getType(DCVertex vertex) {
+
+        DCHalfEdge prev = vertex.getLeavingEdge().getTwin().getNext().getTwin();
+        DCHalfEdge next = vertex.getLeavingEdge();
+
+        PVector a = prev.getOrigin().getPoint();
+        PVector b = vertex.getPoint();
+        PVector c = vertex.getLeavingEdge().getDestination().getPoint();
+        HalfEdgeComparator comparator = new HalfEdgeComparator();
+        if (b.y > c.y && b.y > a.y) {
+            if (comparator.compare(prev, next) > 0) {
+                //inside is up
+                return VertexType.MERGE;
+            } else {
+                return VertexType.END;
+            }
+        } else if (b.y < c.y && b.y < a.y) {
+            if (new HalfEdgeComparator().compare(prev, next) > 0) {
+                //inside is up
+                return VertexType.START;
+            } else {
+                return VertexType.SPLIT;
+            }
+        }
+
+        return VertexType.REGULAR;
+    }
+
+    public static DoublyConnectedEdgeList triangulatePolygon(Polygon p){
+        //first split into y-monotone polygons
+        DoublyConnectedEdgeList dcEdgeList = splitMonotone(p);
+        System.out.println("Number of monotone polygons:" + Integer.toString(dcEdgeList.getFaces().size()));
+        for(DCFace face : (ArrayList<DCFace>) dcEdgeList.getFaces().clone()){//copy list because triangulation modify it
+            triangulateYMonotonePolygon(dcEdgeList, face);
+        }
+        return dcEdgeList;
+    }
+
+
+    public static DoublyConnectedEdgeList splitMonotone(Polygon p) {
+
+        System.out.println("Split monotone:");
+        //get points in counter-clockwise order
+        Iterator<PVector> iter = p.ccwIterator();
+        ArrayList<PVector> points = new ArrayList<>();
+        assert iter != null;
+        while (iter.hasNext()) {
+            points.add(iter.next());
+        }
+        DoublyConnectedEdgeList dcEdgeList = new DoublyConnectedEdgeList(points);
+
+        ArrayList<DCVertex> vertices = (ArrayList<DCVertex>) dcEdgeList.getVertices().clone();
+        vertices.sort((left, right) -> {
+            PVector lhs = left.getPoint();
+            PVector rhs = right.getPoint();
+
+            if (lhs.y > rhs.y || (lhs.y == rhs.y && lhs.x > rhs.y)) {
+                return 1;
+            } else if (lhs.y < rhs.y || (lhs.y == rhs.y && lhs.x < rhs.y)) {
+                return -1;
+            }
+            return 0;
+        });
+
+
+        HashMap<DCVertex,VertexType> types = new HashMap<>();
+        for(DCVertex vertex : vertices){
+            types.put(vertex, getType(vertex));
+        }
+
+        TreeSet<DCHalfEdge> edgeTree = new TreeSet<>(new HalfEdgeComparator());
+        TreeMap<DCHalfEdge, VertexAndType> helperMap = new TreeMap<>(new HalfEdgeComparator());
+
+        for (DCVertex vertex : vertices) {
+            VertexType type = types.get(vertex);
+            System.out.println("Type: " + type.toString() + " point:" + vertex.getPoint());
+            DCHalfEdge prevEdge = dcEdgeList.getPrevEdgeOfFace(vertex, vertex.getLeavingEdge().getFace());
+            DCHalfEdge nextEdge = vertex.getLeavingEdge();
+            switch (type) {
+                case START: {
+                    edgeTree.add(prevEdge);
+                    helperMap.put(prevEdge, new VertexAndType(vertex, type));
+
+                    edgeTree.add(nextEdge);
+                    helperMap.put(nextEdge, new VertexAndType(vertex, type));
+
+                    System.out.println(prevEdge + " " + nextEdge);
+                    break;
+                }
+                case SPLIT: {
+
+                    //get left edge and connect "vertex" to his helper
+                    DCHalfEdge leftOfVertex = edgeTree.floor(nextEdge);
+                    dcEdgeList.addEdge(vertex, helperMap.get(leftOfVertex).getVertex());
+
+                    helperMap.put(leftOfVertex, new VertexAndType(vertex, type));
+
+                    //add edges connected to vertex
+                    edgeTree.add(nextEdge);
+                    helperMap.put(nextEdge, new VertexAndType(vertex, type));
+
+                    edgeTree.add(prevEdge);
+                    helperMap.put(prevEdge, new VertexAndType(vertex, type));
+
+
+                    System.out.println(prevEdge + " " + nextEdge + " " + leftOfVertex);
+                    break;
+                }
+                case MERGE: {
+                    if (helperMap.get(prevEdge).getType() == VertexType.MERGE) {
+                        dcEdgeList.addEdge(vertex, helperMap.get(prevEdge).getVertex());
+                    }
+                    edgeTree.remove(prevEdge);
+                    helperMap.remove(prevEdge);
+
+                    edgeTree.remove(nextEdge);
+                    helperMap.remove(nextEdge);
+
+                    //get edge to left of vertex using "edge" to compare
+                    DCHalfEdge leftOfVertex = edgeTree.floor(prevEdge);
+                    if (helperMap.get(leftOfVertex).getType() == VertexType.MERGE) {
+                        dcEdgeList.addEdge(vertex, helperMap.get(leftOfVertex).getVertex());
+                    }
+                    helperMap.put(leftOfVertex, new VertexAndType(vertex, type));
+
+
+                    System.out.println(leftOfVertex);
+                    break;
+                }
+                case END: {
+
+                    System.out.println(prevEdge.toString());
+                    //remove old edge
+                    VertexAndType helper = helperMap.get(prevEdge);
+                    System.out.println("Helper type:" + helper.getType().toString());
+                    if (helper.getType() == VertexType.MERGE) {
+                        dcEdgeList.addEdge(vertex, helper.getVertex());
+
+                    }
+                    helperMap.remove(prevEdge);
+                    edgeTree.remove(prevEdge);
+
+                    helperMap.remove(nextEdge);
+                    edgeTree.remove(nextEdge);
+
+                    break;
+                }
+                case REGULAR: {
+
+                    DCHalfEdge edgeAbove = prevEdge;
+                    DCHalfEdge edgeBelow = nextEdge;
+                    VertexAndType helper = helperMap.get(edgeAbove);
+                    if(helper == null){//edge on right side
+                        edgeAbove = nextEdge;
+                        edgeBelow = prevEdge;
+                        helper = helperMap.get(edgeAbove);
+                    }
+
+                    //check for merge and remove old edge
+                    if (helper.getType() == VertexType.MERGE) {
+                        dcEdgeList.addEdge(vertex, helper.getVertex());
+
+                    }
+                    helperMap.remove(edgeAbove);
+                    edgeTree.remove(edgeAbove);
+                    //add new edge
+                    edgeTree.add(edgeBelow);
+                    helperMap.put(edgeBelow, new VertexAndType(vertex, type));
+
+                    System.out.println(edgeAbove + " " + edgeBelow);
+                    break;
+                }
+            }
+        }
+
+
+        return dcEdgeList;
+    }
+
+
+
+
     public static DoublyConnectedEdgeList triangulateYMonotonePolygon(Polygon p) {
-        //TODO check for direction
-        int topVertexIdx = p.getLeftMostAlongDirection(new PVector(1, 0));
+
+        //get points in counter-clockwise order
+        Iterator<PVector> iter = p.ccwIterator();
+        ArrayList<PVector> points = new ArrayList<>();
+        assert iter != null;
+        while (iter.hasNext()) {
+            points.add(iter.next());
+        }
+
+        DoublyConnectedEdgeList dcEdgeList = new DoublyConnectedEdgeList(points);
+        triangulateYMonotonePolygon(dcEdgeList, dcEdgeList.getFaces().get(0));
+        return dcEdgeList;
+    }
+
+    public static void triangulateYMonotonePolygon(DoublyConnectedEdgeList dcEdgeList, DCFace face){
+        System.out.println("Triangulate face: " + face.toString());
+        ArrayList<DCVertex> points = new ArrayList<>();
+        DCHalfEdge refEdge = face.getRefEdge();
+        DCHalfEdge currEdge = refEdge;
+        int topVertexIdx = -1;
+        float topVertexY = 0;
+        int idx = 0;
+        do{
+            DCVertex currVertex = currEdge.getOrigin();
+            if(topVertexIdx == -1 || topVertexY < currVertex.getPoint().y){
+                topVertexY = currVertex.getPoint().y;
+                topVertexIdx = idx;
+            }
+            points.add(currVertex);
+            currEdge = currEdge.getNext();
+            idx ++;
+        }while (currEdge != refEdge);
+
+        System.out.println(topVertexY);
+
         ArrayList<Integer> order = new ArrayList<>();
-        ArrayList<PVector> points = p.points();
-        int n = p.points().size();
+        int n = points.size();
+
         int currLeft = topVertexIdx;
         int currRight = (topVertexIdx + (n - 1)) % n;// idx - 1 (mod) n;
-        float currLeftY = points.get(currLeft).y;
-        float currRightY = points.get(currRight).y;
+        float currLeftY = points.get(currLeft).getPoint().y;
+        float currRightY = points.get(currRight).getPoint().y;
         while (currLeft != currRight) {
             if (currLeftY > currRightY) {
                 order.add(currLeft);
                 currLeft = (currLeft + 1) % n;
-                currLeftY = points.get(currLeft).y;
+                currLeftY = points.get(currLeft).getPoint().y;
             } else {
                 order.add(currRight);
                 currRight = (currRight + (n - 1)) % n;// idx - 1 (mod) n;
-                currRightY = points.get(currRight).y;
+                currRightY = points.get(currRight).getPoint().y;
             }
         }
         order.add(currLeft);
         int bottomVertexIdx = currRight;
-
-        DoublyConnectedEdgeList dcEdgeList = new DoublyConnectedEdgeList(points);
 
         Stack<Integer> stack = new Stack<>();
         stack.push(order.get(0));
@@ -73,7 +295,10 @@ public class TriangleDecomposition {
             if (sideOf(uj, topVertexIdx, bottomVertexIdx) != sideOf(stack.peek(), topVertexIdx, bottomVertexIdx)) {
                 while (!stack.empty()) {
                     int v = stack.pop();
-                    if (!stack.empty()) dcEdgeList.addEdge(uj, v);
+                    if (!stack.empty()) {
+                        dcEdgeList.addEdge(points.get(uj), points.get(v));
+                        System.out.println("Add edge");
+                    }
                 }
                 stack.push(order.get(j - 1));
                 stack.push(order.get(j));
@@ -81,13 +306,100 @@ public class TriangleDecomposition {
                 int v = stack.pop();
                 while (!stack.empty() && canSee(uj, stack.peek(), points)) {
                     v = stack.pop();
-                    dcEdgeList.addEdge(uj, v);
+                    dcEdgeList.addEdge(points.get(uj), points.get(v));
+                    System.out.println("Add edge");
                 }
                 stack.push(v);
                 stack.push(order.get(j));
             }
         }
-
-        return dcEdgeList;
     }
+
+
+    public static class VertexAndType {
+
+        DCVertex vertex;
+        TriangleDecomposition.VertexType type;
+        public VertexAndType(DCVertex vertex, TriangleDecomposition.VertexType type){
+            this.vertex = vertex;
+            this.type = type;
+        }
+        public DCVertex getVertex() {
+            return vertex;
+        }
+
+        public void setVertex(DCVertex vertex) {
+            this.vertex = vertex;
+        }
+
+        public TriangleDecomposition.VertexType getType() {
+            return type;
+        }
+
+        public void setType(TriangleDecomposition.VertexType type) {
+            this.type = type;
+        }
+
+    }
+
+    private static class HalfEdgeComparator implements Comparator<DCHalfEdge> {
+        @Override
+        public int compare(DCHalfEdge edge1, DCHalfEdge edge2) {
+            // we assume here to only deal with simple polygons, so never crossings.
+            // otherwise we cannot define a simple global ordering, which is needed here
+
+            if(edge1 == edge2)return 0;
+
+            PVector c = edge1.getDestination().getPoint();
+            PVector e = edge2.getDestination().getPoint();
+
+            PVector d = edge1.getOrigin().getPoint();
+            PVector f = edge2.getOrigin().getPoint();
+
+
+            ArrayList<Float> xValues = new ArrayList<>(){
+                {
+                    add(c.x);
+                    add(d.x);
+                    add(e.x);
+                    add(f.x);
+                }
+            };
+            ArrayList<Float> yValues = new ArrayList<>(){
+                {
+                add(c.y);
+                add(d.y);
+                add(e.y);
+                add(f.y);
+                }
+            };
+            float max = Collections.max(yValues);
+            float min = Collections.min(yValues);
+
+            //get line between the two central values
+            float cutLineY = (c.y + d.y + e.y + f.y - max - min)/2;
+            float minX = Collections.min(xValues);
+            PVector a = new PVector(minX-10, cutLineY);
+
+            TurnDirection leftefc = orientation(e,f,c);
+            TurnDirection leftefa = orientation(e,f,a);
+            TurnDirection leftefd = orientation(e,f,d);
+
+            if((leftefc == STRAIGHT || leftefc == leftefa) &&
+               (leftefd == STRAIGHT  || leftefd == leftefa))
+                return -1;
+
+            TurnDirection leftcde = orientation(c,d,e);
+            TurnDirection leftcda = orientation(c,d,a);
+            TurnDirection leftcdf = orientation(c,d,f);
+
+
+            if (leftcde != leftcda && leftcdf != leftcda) {
+                return -1;
+            } else  {
+                return 1;
+            }
+        }
+    }
+
 }

@@ -20,6 +20,7 @@ public class DCVertex {
     public DCHalfEdge getLeavingEdge() {
         return leavingEdge;
     }
+    //get edge from this to "vertex"
     public DCHalfEdge getEdgeTo(DCVertex vertex){
         if(this.leavingEdge != null){
             if(this.leavingEdge.getTwin().getOrigin() == vertex){
