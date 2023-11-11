@@ -7,6 +7,14 @@ public enum TurnDirection {
     LEFT,
     RIGHT;
 
+    public static TurnDirection orientation(DCHalfEdge a, DCHalfEdge b, DCHalfEdge c) {
+        return TurnDirection.orientation(a.getOrigin(), b.getOrigin(), c.getOrigin());
+    }
+
+    public static TurnDirection orientation(DCVertex a, DCVertex b, DCVertex c) {
+        return TurnDirection.orientation(a.getPoint(), b.getPoint(), c.getPoint());
+    }
+
     public static TurnDirection orientation(PVector a, PVector b, PVector c) {
         // assert only in 2D
         assert a.z == 0;

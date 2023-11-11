@@ -55,4 +55,7 @@ public class DCHalfEdge {
         this.face = face;
     }
 
+    public Line toLine() {
+        return new Line(origin.getPoint(), twin.getOrigin().getPoint());
+    }
 }

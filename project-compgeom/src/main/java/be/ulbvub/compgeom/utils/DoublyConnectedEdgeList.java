@@ -72,7 +72,7 @@ public class DoublyConnectedEdgeList implements Drawable {
       How it works :
       Try on incoming edge, if it is not on the correct face, try another one (rotate on edges)
        */
-    public DCHalfEdge getPrevEdgeOfFace(DCVertex vertex, DCFace face) {
+    public static DCHalfEdge getPrevEdgeOfFace(DCVertex vertex, DCFace face) {
 
         DCHalfEdge twin = vertex.getLeavingEdge().getTwin();
         DCHalfEdge edge = twin.getNext().getTwin();
@@ -157,15 +157,15 @@ public class DoublyConnectedEdgeList implements Drawable {
         vertex.setLeavingEdge(extendedEdge);
     }
 
-    public ArrayList<DCVertex> getVerticesOfFace(DCFace face){
+    public ArrayList<DCVertex> getVerticesOfFace(DCFace face) {
         ArrayList<DCVertex> points = new ArrayList<>();
         DCHalfEdge refEdge = face.getRefEdge();
         DCHalfEdge currEdge = refEdge;
-        do{
+        do {
             DCVertex currVertex = currEdge.getOrigin();
             points.add(currVertex);
             currEdge = currEdge.getNext();
-        }while (currEdge != refEdge);
+        } while (currEdge != refEdge);
         return points;
     }
 
@@ -231,16 +231,16 @@ public class DoublyConnectedEdgeList implements Drawable {
 
 
         Random rand = new Random();
-        for(DCFace face : faces){
+        for (DCFace face : faces) {
 
             rand.setSeed(face.hashCode());
-            applet.fill(rand.nextInt(50,200),rand.nextInt(50,200),rand.nextInt(50,200));
+            applet.fill(rand.nextInt(50, 200), rand.nextInt(50, 200), rand.nextInt(50, 200));
             applet.beginShape();
-            int i =0;
-            for(DCVertex vertex : this.getVerticesOfFace(face)){
+            int i = 0;
+            for (DCVertex vertex : this.getVerticesOfFace(face)) {
                 float x = vertex.getPoint().x;
                 float y = vertex.getPoint().y;
-                applet.vertex(x,y);
+                applet.vertex(x, y);
                 i++;
             }
             applet.endShape(PConstants.CLOSE);
