@@ -9,14 +9,14 @@ import java.util.*;
  */
 public class NotchFinder {
 
-	private final Polygon polygon;
+	private final SimplePolygon polygon;
 
 	private final List<PVector> notches = new ArrayList<>();
 
 	/**
 	 * @param polygon the polygon from which the notches will be found
 	 */
-	public NotchFinder(final Polygon polygon) {
+	public NotchFinder(final SimplePolygon polygon) {
 		this.polygon = polygon;
 	}
 
@@ -30,8 +30,10 @@ public class NotchFinder {
 		PVector firstVertex = null;
 		final List<PVector> angleQueue = new ArrayList<>();
 
-		for(final Iterator<PVector> iterator = polygon.ccwIterator(); iterator.hasNext();) {
-			final PVector vertex = iterator.next();
+		if(polygon.size() < 3) {
+			return this;
+		}
+		for(final PVector vertex : polygon.points()) {
 			angleQueue.add(vertex);
 
 			if(firstVertex == null) {

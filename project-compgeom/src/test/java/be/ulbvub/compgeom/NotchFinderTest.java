@@ -12,12 +12,12 @@ import java.util.List;
 class NotchFinderTest {
 
 	//A flag-shaped polygon
-	private Polygon flagPolygon;
+	private SimplePolygon flagPolygon;
 
 	@BeforeEach
 	void setup() {
 		//The (1, 1) point is a reflex point
-		this.flagPolygon = new Polygon(new ArrayList<>(Arrays.asList(
+		this.flagPolygon = new SimplePolygon(new ArrayList<>(Arrays.asList(
 				new PVector(0, 0),
 				//reflex point
 				new PVector(1, 1),
