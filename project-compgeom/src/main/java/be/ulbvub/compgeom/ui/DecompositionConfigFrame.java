@@ -91,12 +91,12 @@ public class DecompositionConfigFrame extends JFrame {
             final var layout = new GridLayout(2, 2, 5, 5);
             setLayout(layout);
             final var labelX = new JLabel("Direction x: ");
-            fieldX = new JTextField("1", 3);
+            fieldX = new JTextField("0", 3);
             add(labelX);
             add(fieldX);
 
             final var labelY = new JLabel("Direction y: ");
-            fieldY = new JTextField("0", 3);
+            fieldY = new JTextField("1", 3);
             add(labelY);
             add(fieldY);
         }

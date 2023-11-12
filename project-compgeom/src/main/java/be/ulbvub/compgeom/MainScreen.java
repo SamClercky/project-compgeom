@@ -66,6 +66,7 @@ public class MainScreen extends PApplet {
                 if (config instanceof DecompositionConfig.TriangulationConfig c) {
                     if (c.polygon().points().size() > 3) {
                         dcel = TriangleDecomposition.triangulatePolygon(polygonRegion.getPolygon());
+                        JOptionPane.showMessageDialog(frame, "Decomposition complete");
                     } else {
                         JOptionPane.showMessageDialog(
                                 frame,
@@ -78,7 +79,8 @@ public class MainScreen extends PApplet {
                         final var algorithm = new SlabDecomposition(c.direction(), c.polygon());
                         algorithm.buildEventQueue();
                         algorithm.run();
-                        // TODO: print result to screen
+                        dcel = algorithm.getDecomposition();
+                        JOptionPane.showMessageDialog(frame, "Decomposition complete");
                     } else {
                         JOptionPane.showMessageDialog(
                                 frame,

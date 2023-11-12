@@ -4,7 +4,11 @@ import processing.core.PVector;
 
 public interface Event<T> {
 
-    PVector getPoint();
+    default PVector getPoint() {
+        return getVertex().getPoint();
+    }
+
+    DCVertex getVertex();
 
     T getReason();
 }

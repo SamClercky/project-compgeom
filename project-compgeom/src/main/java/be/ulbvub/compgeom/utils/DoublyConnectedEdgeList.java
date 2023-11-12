@@ -126,8 +126,9 @@ public class DoublyConnectedEdgeList implements Drawable {
      *
      * @param edge     The edge on which to insert the new vertex. Should already be present in the DCEL
      * @param position The position the vertex is inserted at
+     * @return Reference to created vertex
      */
-    public void addVertex(DCHalfEdge edge, PVector position) {
+    public DCVertex addVertex(DCHalfEdge edge, PVector position) {
         // Assert some invariants
         Objects.requireNonNull(edge.getTwin(), "Edge should have a twin");
         Objects.requireNonNull(edge.getOrigin(), "Edge should be part of a DCEL");
@@ -155,6 +156,11 @@ public class DoublyConnectedEdgeList implements Drawable {
         twin.setTwin(extendedEdge);
 
         vertex.setLeavingEdge(extendedEdge);
+        vertices.add(vertex);
+        edges.add(extendedEdge);
+        edges.add(extendedTwin);
+
+        return vertex;
     }
 
     public ArrayList<DCVertex> getVerticesOfFace(DCFace face) {
@@ -254,6 +260,20 @@ public class DoublyConnectedEdgeList implements Drawable {
         for (DCVertex vertex : vertices) {
             applet.circle(vertex.getPoint().x, vertex.getPoint().y, context.style().getPointSize());
         }
+    }
+
+    /**
+     * Query an edge from which a certain line is correlated
+     *
+     * @param line The line to query
+     * @return The first half edge that is correlated to the provided line
+     */
+    public DCHalfEdge getEdgeByLine(Line line) {
+        for (var edge : edges) {
+            if (line.equals(edge.toLine()))
+                return edge;
+        }
+        return null;
     }
 
     public ArrayList<DCHalfEdge> getEdges() {

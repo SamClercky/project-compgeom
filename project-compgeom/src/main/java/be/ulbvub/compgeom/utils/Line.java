@@ -20,4 +20,30 @@ public record Line(PVector start, PVector end) {
                 )
         );
     }
+
+    public Line getInverted() {
+        return new Line(end, start);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Line other) {
+            return (start.equals(other.start) && end.equals(other.end)) || (end.equals(other.start) && start.equals(other.end));
+        } else {
+            return false;
+        }
+    }
+
+    public PVector leftMost() {
+        return start.x <= end.x ? start : end;
+    }
+
+    public PVector rightMost() {
+        return start.x <= end.x ? end : start;
+    }
+
+    public Line rotate90() {
+        //noinspection SuspiciousNameCombination
+        return new Line(new PVector(start.y, start.x), new PVector(end.y, end.x));
+    }
 }

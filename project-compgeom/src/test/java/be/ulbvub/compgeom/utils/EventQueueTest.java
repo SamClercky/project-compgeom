@@ -17,8 +17,8 @@ class EventQueueTest {
             var event = new Event<>() {
 
                 @Override
-                public PVector getPoint() {
-                    return direction.copy().mult(finalI);
+                public DCVertex getVertex() {
+                    return new DCVertex(direction.copy().mult(finalI));
                 }
 
                 @Override

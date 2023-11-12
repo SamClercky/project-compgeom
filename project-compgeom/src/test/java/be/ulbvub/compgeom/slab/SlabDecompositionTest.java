@@ -119,12 +119,77 @@ class SlabDecompositionTest {
         assertEventEquals(new PVector(530, 246), EventTypes.End, Objects.requireNonNull(queue.poll()));
     }
 
-    void assertEventEquals(PVector expectedPoint, EventTypes expectedReason, Event<EventTypes> observed) {
-        assertEquals(expectedPoint, observed.getPoint());
-        assertEquals(expectedReason, observed.getReason());
+    @Test
+    void decomposeIdemPotent() {
+        final var decomposeSquare = new SlabDecomposition(new PVector(0, 1), square);
+        decomposeSquare.buildEventQueue();
+        decomposeSquare.run();
+        final var squareResult = decomposeSquare.getDecomposition();
+
+        // Decomposition should be idempotent
+        assertEquals(4, squareResult.getVertices().size());
+        assertEquals(1, squareResult.getFaces().size());
+        assertEquals(8, squareResult.getEdges().size());
+
+        final var decomposeTriangle = new SlabDecomposition(new PVector(0, 1), triangle);
+        decomposeTriangle.buildEventQueue();
+        decomposeTriangle.run();
+        final var triangleResult = decomposeTriangle.getDecomposition();
+
+        // Decomposition should be idempotent
+        assertEquals(3, triangleResult.getVertices().size());
+        assertEquals(1, triangleResult.getFaces().size());
+        assertEquals(6, triangleResult.getEdges().size());
+
+        final var decomposeSquareRotated = new SlabDecomposition(new PVector(0, 1), square);
+        decomposeSquareRotated.buildEventQueue();
+        decomposeSquareRotated.run();
+        final var rotatedSquareResult = decomposeSquareRotated.getDecomposition();
+
+        // Decomposition should be idempotent
+        assertEquals(4, rotatedSquareResult.getVertices().size());
+        assertEquals(1, rotatedSquareResult.getFaces().size());
+        assertEquals(8, rotatedSquareResult.getEdges().size());
     }
 
     @Test
-    void run() {
+    void decomposeIdents() throws IOException {
+        final var polygonResource = getClass().getClassLoader().getResource("indented.poly").getFile();
+        final var reader = new PolygonReader();
+        reader.readFile(new File(polygonResource));
+        final var polygon = reader.getPolygon();
+
+        final var decomposition = new SlabDecomposition(new PVector(0, 1), polygon);
+        decomposition.buildEventQueue();
+        decomposition.run();
+        final var result = decomposition.getDecomposition();
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertEquals(8, result.getVertices().size());
+        assertEquals(3, result.getFaces().size());
+        assertEquals(20, result.getEdges().size());
+    }
+
+    @Test
+    void decomposeIdentsHorizontal() throws IOException {
+        final var polygonResource = getClass().getClassLoader().getResource("indented-horizontal.poly").getFile();
+        final var reader = new PolygonReader();
+        reader.readFile(new File(polygonResource));
+        final var polygon = reader.getPolygon();
+
+        final var decomposition = new SlabDecomposition(new PVector(0, 1), polygon);
+        decomposition.buildEventQueue();
+        decomposition.run();
+        final var result = decomposition.getDecomposition();
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertEquals(8, result.getVertices().size());
+        assertEquals(3, result.getFaces().size());
+        assertEquals(20, result.getEdges().size());
+    }
+
+    void assertEventEquals(PVector expectedPoint, EventTypes expectedReason, Event<EventTypes> observed) {
+        assertEquals(expectedPoint, observed.getPoint());
+        assertEquals(expectedReason, observed.getReason());
     }
 }

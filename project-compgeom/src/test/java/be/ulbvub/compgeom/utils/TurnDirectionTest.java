@@ -14,7 +14,7 @@ class TurnDirectionTest {
         var p3 = new PVector(1, 1);
         var p4 = new PVector(1, -1);
 
-        assertEquals(TurnDirection.LEFT, TurnDirection.orientation(p1, p2, p3));
-        assertEquals(TurnDirection.RIGHT, TurnDirection.orientation(p1, p2, p4));
+        assertEquals(TurnDirection.RIGHT, TurnDirection.orientation(p1, p2, p3));
+        assertEquals(TurnDirection.LEFT, TurnDirection.orientation(p1, p2, p4));
     }
 }
