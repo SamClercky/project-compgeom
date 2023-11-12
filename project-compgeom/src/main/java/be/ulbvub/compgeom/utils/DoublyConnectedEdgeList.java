@@ -251,6 +251,9 @@ public class DoublyConnectedEdgeList implements Drawable {
             var end = edge.getDestination().getPoint();
             applet.line(start.x, start.y, end.x, end.y);
         }
+        for (DCVertex vertex : vertices) {
+            applet.circle(vertex.getPoint().x, vertex.getPoint().y, context.style().getPointSize());
+        }
     }
 
     public ArrayList<DCHalfEdge> getEdges() {

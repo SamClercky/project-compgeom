@@ -91,4 +91,9 @@ public class DCVertex {
     public Iterator<DCHalfEdge> iterateIncomingEdges() {
         return new TwinEdgesIterator(this);
     }
+
+    @Override
+    public String toString() {
+        return "(x:" + point.x + ",y:"+ point.y+")";
+    }
 }
