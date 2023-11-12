@@ -185,7 +185,7 @@ public class SlabDecomposition {
         else if (halfEdge.getTwin().getOrigin().getPoint().equals(intersection))
             otherEndVertex = halfEdge.getTwin().getOrigin();
         else
-            otherEndVertex = decomposition.addVertex(decomposition.getEdgeByLine(edge), intersection);
+            otherEndVertex = decomposition.addVertex(halfEdge, intersection);
 
         // Connect reflex point with above (steiner) point
         if (!otherEndVertex.getPoint().equals(event.getVertex().getPoint()))

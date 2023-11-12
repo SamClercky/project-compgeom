@@ -13,6 +13,7 @@ import javax.swing.*;
 import java.util.ArrayList;
 
 public class MainScreen extends PApplet {
+    private boolean showDCEL = false;
     private PointDrawRegion polygonRegion;
     private DoublyConnectedEdgeList dcel;
     private MouseClickEvent mouseClicked = null;
@@ -21,6 +22,7 @@ public class MainScreen extends PApplet {
     private Button btnDecompose;
     private Button btnExplain;
     private Button btnReset;
+    private Button btnToggleDCEL;
 
     public MainScreen() {
         super();
@@ -56,6 +58,7 @@ public class MainScreen extends PApplet {
             reader.openFileDialog();
             polygonRegion.setPolygon(reader.getPolygon());
             dcel = null;
+            showDCEL = false;
         });
 
         btnDecompose = new Button("Decompose", new PVector(0, 0), new PVector(90, 20));
@@ -63,6 +66,7 @@ public class MainScreen extends PApplet {
             final var frame = new DecompositionConfigFrame(polygonRegion.getPolygon());
             frame.open();
             frame.setListener((config) -> {
+                showDCEL = true;
                 if (config instanceof DecompositionConfig.TriangulationConfig c) {
                     if (c.polygon().points().size() > 3) {
                         dcel = TriangleDecomposition.triangulatePolygon(polygonRegion.getPolygon());
@@ -102,6 +106,12 @@ public class MainScreen extends PApplet {
         btnReset.setListener((evt) -> {
             polygonRegion.setPolygon(new Polygon(new ArrayList<>()));
             dcel = null;
+            showDCEL = false;
+        });
+
+        btnToggleDCEL = new Button("Toggle DCEL", new PVector(0, 0), new PVector(90, 20));
+        btnToggleDCEL.setListener((evt) -> {
+            showDCEL = !showDCEL;
         });
     }
 
@@ -119,13 +129,14 @@ public class MainScreen extends PApplet {
                             .draw((ctx2) -> btnOpen.draw(ctx2))
                             .draw((ctx3) -> btnDecompose.draw(ctx3))
                             .draw((ctx4) -> btnExplain.draw(ctx4))
-                            .draw((ctx5) -> btnReset.draw(ctx5));
+                            .draw((ctx5) -> btnReset.draw(ctx5))
+                            .draw((ctx6) -> btnToggleDCEL.draw(ctx6));
                 })
                 .draw((ctx) -> {
                     ctx.fill(color(255));
                     StackBox.with(ctx)
                             .draw((ctx1) -> {
-                                if (dcel != null)
+                                if (dcel != null && showDCEL)
                                     dcel.draw(ctx);
                                 else
                                     polygonRegion.draw(ctx);

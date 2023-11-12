@@ -188,6 +188,24 @@ class SlabDecompositionTest {
         assertEquals(20, result.getEdges().size());
     }
 
+    @Test
+    void decomposeIdentsSkewed() throws IOException {
+        final var polygonResource = getClass().getClassLoader().getResource("indented-skewed.poly").getFile();
+        final var reader = new PolygonReader();
+        reader.readFile(new File(polygonResource));
+        final var polygon = reader.getPolygon();
+
+        final var decomposition = new SlabDecomposition(new PVector(0, 1), polygon);
+        decomposition.buildEventQueue();
+        decomposition.run();
+        final var result = decomposition.getDecomposition();
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertEquals(8, result.getVertices().size());
+        assertEquals(3, result.getFaces().size());
+        assertEquals(20, result.getEdges().size());
+    }
+
     void assertEventEquals(PVector expectedPoint, EventTypes expectedReason, Event<EventTypes> observed) {
         assertEquals(expectedPoint, observed.getPoint());
         assertEquals(expectedReason, observed.getReason());
