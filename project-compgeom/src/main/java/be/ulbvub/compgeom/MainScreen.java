@@ -75,10 +75,10 @@ public class MainScreen extends PApplet {
                     }
                 } else if (config instanceof DecompositionConfig.SlabConfig c) {
                     if (c.polygon().points().size() > 3) {
-                         final var algorithm = new SlabDecomposition(c.direction(), c.polygon());
-                         algorithm.buildEventQueue(c.polygon());
-                         algorithm.run();
-                         // TODO: print result to screen
+                        final var algorithm = new SlabDecomposition(c.direction(), c.polygon());
+                        algorithm.buildEventQueue();
+                        algorithm.run();
+                        // TODO: print result to screen
                     } else {
                         JOptionPane.showMessageDialog(
                                 frame,

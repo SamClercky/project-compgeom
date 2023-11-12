@@ -1,8 +1,6 @@
 package be.ulbvub.compgeom.slab;
 
-import be.ulbvub.compgeom.utils.Line;
-
-import java.util.ArrayList;
+import be.ulbvub.compgeom.utils.DCVertex;
 
 public enum EventTypes {
     Start(),
@@ -12,13 +10,16 @@ public enum EventTypes {
     NormalPoint(),
     ReflexPoint();
 
-    private final ArrayList<Line> connectedEdges;
+    private DCVertex vertex;
 
     EventTypes() {
-        connectedEdges = new ArrayList<>();
     }
 
-    public ArrayList<Line> edges() {
-        return connectedEdges;
+    public DCVertex getVertex() {
+        return vertex;
+    }
+
+    public void setVertex(DCVertex vertex) {
+        this.vertex = vertex;
     }
 }

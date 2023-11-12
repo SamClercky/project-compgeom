@@ -182,4 +182,33 @@ public class DCFace {
 
         throw new IllegalStateException();
     }
+
+    /**
+     * @return An iterator that iterates in ccw order. The iterator starts at the left most-point.
+     */
+    public Iterator<DCVertex> ccwIteratorVertex() {
+        final var leftmost = getLeftMostEdge();
+        final var point1 = leftmost.getOrigin().getPoint();
+        final var point2 = leftmost.getNext().getOrigin().getPoint();
+        final var pointN = leftmost.getPrev().getOrigin().getPoint();
+
+        switch (TurnDirection.orientation(point2, point1, pointN)) {
+            case STRAIGHT -> {
+                // All three points are on a straight line, but no edges nor points overlap
+                if (point1.y < point2.y) {
+                    return iterateBackwardVertices();
+                } else {
+                    return iterateForwardVertices();
+                }
+            }
+            case RIGHT -> {
+                return iterateForwardVertices();
+            }
+            case LEFT -> {
+                return iterateBackwardVertices();
+            }
+        }
+
+        throw new IllegalStateException();
+    }
 }
