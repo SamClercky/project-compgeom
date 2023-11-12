@@ -65,7 +65,7 @@ public class MainScreen extends PApplet {
             frame.setListener((config) -> {
                 if (config instanceof DecompositionConfig.TriangulationConfig c) {
                     if (c.polygon().points().size() > 3) {
-                        dcel = TriangleDecomposition.triangulateYMonotonePolygon(polygonRegion.getPolygon());
+                        dcel = TriangleDecomposition.triangulatePolygon(polygonRegion.getPolygon());
                     } else {
                         JOptionPane.showMessageDialog(
                                 frame,
