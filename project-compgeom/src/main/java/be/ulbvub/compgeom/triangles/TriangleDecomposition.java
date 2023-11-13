@@ -4,9 +4,9 @@ import be.ulbvub.compgeom.Polygon;
 import be.ulbvub.compgeom.utils.*;
 import processing.core.PVector;
 
-import java.sql.Array;
 import java.util.*;
 
+import static be.ulbvub.compgeom.utils.DoublyConnectedEdgeList.getPrevEdgeOfFace;
 import static be.ulbvub.compgeom.utils.TurnDirection.*;
 
 public class TriangleDecomposition {
@@ -43,17 +43,9 @@ public class TriangleDecomposition {
     public static boolean isBelow(PVector a, PVector b) {
         double diff = a.y - b.y;
         if (diff == 0.0) {
-            if (a.x > b.x) {
-                return true;
-            } else {
-                return false;
-            }
+            return a.x > b.x;
         } else {
-            if (diff < 0.0) {
-                return false;
-            } else {
-                return true;
-            }
+            return !(diff < 0.0);
         }
     }
 
@@ -94,7 +86,7 @@ public class TriangleDecomposition {
     public static DoublyConnectedEdgeList triangulatePolygon(Polygon p){
         //first split into y-monotone polygons
         DoublyConnectedEdgeList dcEdgeList = splitMonotone(p);
-        System.out.println("Number of monotone polygons:" + Integer.toString(dcEdgeList.getFaces().size()));
+        System.out.println("Number of monotone polygons:" + dcEdgeList.getFaces().size());
         for(DCFace face : (ArrayList<DCFace>) dcEdgeList.getFaces().clone()){//copy list because triangulation modify it
             triangulateYMonotonePolygon(dcEdgeList, face);
         }
@@ -140,7 +132,7 @@ public class TriangleDecomposition {
         for (DCVertex vertex : vertices) {
             VertexType type = types.get(vertex);
             System.out.println("Type: " + type.toString() + " point:" + vertex.getPoint());
-            DCHalfEdge prevEdge = dcEdgeList.getPrevEdgeOfFace(vertex, vertex.getLeavingEdge().getFace());
+            DCHalfEdge prevEdge = getPrevEdgeOfFace(vertex, vertex.getLeavingEdge().getFace());
             DCHalfEdge nextEdge = vertex.getLeavingEdge();
             switch (type) {
                 case START: {
@@ -190,7 +182,7 @@ public class TriangleDecomposition {
                 }
                 case END: {
 
-                    System.out.println(prevEdge.toString());
+                    System.out.println(prevEdge);
                     //remove old edge
                     VertexAndType helper = helperMap.get(prevEdge);
                     //System.out.println("Helper type:" + helper.getType().toString());
@@ -206,9 +198,7 @@ public class TriangleDecomposition {
                 }
                 case REGULAR: {
 
-                    DCHalfEdge edgeAbove = prevEdge;
-                    DCHalfEdge edgeBelow = nextEdge;
-                    VertexAndType helper = helperMap.get(edgeAbove);
+                    VertexAndType helper = helperMap.get(prevEdge);
 
                     if (helper != null) {//edge on left side, TODO test if always true
                         //check for merge and remove old edge
@@ -216,11 +206,11 @@ public class TriangleDecomposition {
                             dcEdgeList.addEdge(vertex, helper.getVertex());
 
                         }
-                        helperMap.remove(edgeAbove);
-                        edgeTree.remove(edgeAbove);
+                        helperMap.remove(prevEdge);
+                        edgeTree.remove(prevEdge);
                         //add new edge
-                        edgeTree.add(edgeBelow);
-                        helperMap.put(edgeBelow, new VertexAndType(vertex, type));
+                        edgeTree.add(nextEdge);
+                        helperMap.put(nextEdge, new VertexAndType(vertex, type));
 
                     }else{//edge on right side
                         //get edge to left of vertex using "edge" to compare
@@ -233,7 +223,7 @@ public class TriangleDecomposition {
                         helperMap.put(leftOfVertex, new VertexAndType(vertex, type));
                     }
 
-                    //System.out.println(edgeAbove + " " + edgeBelow);
+                    //System.out.println(edgeAbove + " " + nextEdge);
                     break;
                 }
             }
@@ -334,7 +324,7 @@ public class TriangleDecomposition {
             }
         }
 
-        //draw edge from last vertex to every vertices remaining except his neighbours (top and bottom of stack):
+        //draw edge from last vertex to every vertex remaining except his neighbours (top and bottom of stack):
 
         int un = order.get(n-1);
         System.out.println("Stack: " + stack + " un:"+ un);
@@ -357,16 +347,8 @@ public class TriangleDecomposition {
             return vertex;
         }
 
-        public void setVertex(DCVertex vertex) {
-            this.vertex = vertex;
-        }
-
         public TriangleDecomposition.VertexType getType() {
             return type;
-        }
-
-        public void setType(TriangleDecomposition.VertexType type) {
-            this.type = type;
         }
 
     }
