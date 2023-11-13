@@ -20,25 +20,11 @@ public class TriangleDecomposition {
             return !isOnJunctionSide;
     }
 
-    private static boolean canSee(int vertexBottom, int vertexTop, ArrayList<DCVertex> points, int topIdx, int bottomIdx) {
-        int n = points.size();
+    private static boolean canSee(int vertexBottom, int vertexInter, int vertexTop, ArrayList<DCVertex> points, int topIdx, int bottomIdx) {
         PVector bottomVec = points.get(vertexBottom).getPoint();
         PVector topVec = points.get(vertexTop).getPoint();
-        boolean itCan = true;
-        if (sideOf(vertexBottom, topIdx, bottomIdx)) {//on left side
-            int vertexInter = (vertexBottom + n - 1) % n;// vertexBottom - 1 (mod) n
-            while (itCan && vertexInter != vertexTop) {
-                itCan = orientation(bottomVec, points.get(vertexInter).getPoint(), topVec) == RIGHT;
-                vertexInter = (vertexInter + n - 1) % n;
-            }
-        } else {
-            int vertexInter = (vertexBottom + 1) % n;
-            while (itCan && vertexInter != vertexTop) {
-                itCan = orientation(bottomVec, points.get(vertexInter).getPoint(), topVec) == LEFT;
-                vertexInter = (vertexInter + 1) % n ;
-            }
-        }
-        return itCan;
+        TurnDirection orientation = orientation(bottomVec, points.get(vertexInter).getPoint(), topVec);
+        return (orientation == STRAIGHT) || ((orientation == RIGHT) == sideOf(vertexBottom, topIdx, bottomIdx));
     }
 
 
@@ -50,6 +36,27 @@ public class TriangleDecomposition {
         REGULAR
     }
 
+    /**
+     * Returns true if point a is below point b.
+     * If the point a.y and b.y are equals compare their x value
+     */
+    public static boolean isBelow(PVector a, PVector b) {
+        double diff = a.y - b.y;
+        if (diff == 0.0) {
+            if (a.x > b.x) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            if (diff < 0.0) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+    }
+
     private static VertexType getType(DCVertex vertex) {
 
         DCHalfEdge prev = vertex.getLeavingEdge().getTwin().getNext().getTwin();
@@ -57,17 +64,23 @@ public class TriangleDecomposition {
 
         PVector a = prev.getOrigin().getPoint();
         PVector b = vertex.getPoint();
-        PVector c = vertex.getLeavingEdge().getDestination().getPoint();
+        PVector c = next.getDestination().getPoint();
+        boolean cIsBelow = isBelow(c, b);
+        boolean aIsBelow = isBelow(a, b);
+
+        TurnDirection turn = orientation(a,b,c);
         HalfEdgeComparator comparator = new HalfEdgeComparator();
-        if (b.y > c.y && b.y > a.y) {
-            if (comparator.compare(prev, next) > 0) {
+        System.out.println("Cross: " + orientation(a,b,c));
+        System.out.println("Comparator: " + comparator.compare(prev, next));
+        if (!cIsBelow && !aIsBelow) {
+            if (turn == TurnDirection.LEFT) {
                 //inside is up
-                return VertexType.MERGE;
-            } else {
                 return VertexType.END;
+            } else {
+                return VertexType.MERGE;
             }
-        } else if (b.y < c.y && b.y < a.y) {
-            if (comparator.compare(prev, next) > 0) {
+        } else if (cIsBelow && aIsBelow) {
+            if (turn == TurnDirection.LEFT) {
                 //inside is up
                 return VertexType.START;
             } else {
@@ -107,9 +120,9 @@ public class TriangleDecomposition {
             PVector lhs = left.getPoint();
             PVector rhs = right.getPoint();
 
-            if (lhs.y > rhs.y || (lhs.y == rhs.y && lhs.x > rhs.y)) {
+            if (lhs.y > rhs.y || (lhs.y == rhs.y && lhs.x > rhs.x)) {
                 return 1;
-            } else if (lhs.y < rhs.y || (lhs.y == rhs.y && lhs.x < rhs.y)) {
+            } else if (lhs.y < rhs.y || (lhs.y == rhs.y && lhs.x < rhs.x)) {
                 return -1;
             }
             return 0;
@@ -131,32 +144,27 @@ public class TriangleDecomposition {
             DCHalfEdge nextEdge = vertex.getLeavingEdge();
             switch (type) {
                 case START: {
-                    edgeTree.add(prevEdge);
-                    helperMap.put(prevEdge, new VertexAndType(vertex, type));
-
                     edgeTree.add(nextEdge);
                     helperMap.put(nextEdge, new VertexAndType(vertex, type));
 
-                    //System.out.println(prevEdge + " " + nextEdge);
+                    System.out.println(prevEdge + " " + nextEdge);
                     break;
                 }
                 case SPLIT: {
 
                     //get left edge and connect "vertex" to his helper
                     DCHalfEdge leftOfVertex = edgeTree.floor(nextEdge);
+                    if (leftOfVertex == null) throw new IllegalArgumentException("It must be a simple polygon");
                     dcEdgeList.addEdge(vertex, helperMap.get(leftOfVertex).getVertex());
 
+                    //update the helper for left edge
                     helperMap.put(leftOfVertex, new VertexAndType(vertex, type));
 
                     //add edges connected to vertex
                     edgeTree.add(nextEdge);
                     helperMap.put(nextEdge, new VertexAndType(vertex, type));
 
-                    edgeTree.add(prevEdge);
-                    helperMap.put(prevEdge, new VertexAndType(vertex, type));
-
-
-                    //System.out.println(prevEdge + " " + nextEdge + " " + leftOfVertex);
+                    System.out.println(prevEdge + " " + nextEdge + " " + leftOfVertex);
                     break;
                 }
                 case MERGE: {
@@ -166,23 +174,23 @@ public class TriangleDecomposition {
                     edgeTree.remove(prevEdge);
                     helperMap.remove(prevEdge);
 
-                    edgeTree.remove(nextEdge);
-                    helperMap.remove(nextEdge);
 
                     //get edge to left of vertex using "edge" to compare
                     DCHalfEdge leftOfVertex = edgeTree.floor(prevEdge);
+                    if (leftOfVertex == null) throw new IllegalArgumentException("It must be a simple polygon");
+
                     if (helperMap.get(leftOfVertex).getType() == VertexType.MERGE) {
                         dcEdgeList.addEdge(vertex, helperMap.get(leftOfVertex).getVertex());
                     }
                     helperMap.put(leftOfVertex, new VertexAndType(vertex, type));
 
 
-                    //System.out.println(leftOfVertex);
+                    System.out.println(leftOfVertex);
                     break;
                 }
                 case END: {
 
-                    //System.out.println(prevEdge.toString());
+                    System.out.println(prevEdge.toString());
                     //remove old edge
                     VertexAndType helper = helperMap.get(prevEdge);
                     //System.out.println("Helper type:" + helper.getType().toString());
@@ -193,8 +201,6 @@ public class TriangleDecomposition {
                     helperMap.remove(prevEdge);
                     edgeTree.remove(prevEdge);
 
-                    helperMap.remove(nextEdge);
-                    edgeTree.remove(nextEdge);
 
                     break;
                 }
@@ -203,23 +209,29 @@ public class TriangleDecomposition {
                     DCHalfEdge edgeAbove = prevEdge;
                     DCHalfEdge edgeBelow = nextEdge;
                     VertexAndType helper = helperMap.get(edgeAbove);
-                    if(helper == null){//edge on right side
-                        edgeAbove = nextEdge;
-                        edgeBelow = prevEdge;
-                        helper = helperMap.get(edgeAbove);
+
+                    if (helper != null) {//edge on left side, TODO test if always true
+                        //check for merge and remove old edge
+                        if (helper.getType() == VertexType.MERGE) {
+                            dcEdgeList.addEdge(vertex, helper.getVertex());
+
+                        }
+                        helperMap.remove(edgeAbove);
+                        edgeTree.remove(edgeAbove);
+                        //add new edge
+                        edgeTree.add(edgeBelow);
+                        helperMap.put(edgeBelow, new VertexAndType(vertex, type));
+
+                    }else{//edge on right side
+                        //get edge to left of vertex using "edge" to compare
+                        DCHalfEdge leftOfVertex = edgeTree.floor(prevEdge);
+                        if (leftOfVertex == null) throw new IllegalArgumentException("It must be a simple polygon");
+                        helper = helperMap.get(leftOfVertex);
+                        if (helper.getType() == VertexType.MERGE) {
+                            dcEdgeList.addEdge(vertex, helper.getVertex());
+                        }
+                        helperMap.put(leftOfVertex, new VertexAndType(vertex, type));
                     }
-
-
-                    //check for merge and remove old edge
-                    if (helper.getType() == VertexType.MERGE) {
-                        dcEdgeList.addEdge(vertex, helper.getVertex());
-
-                    }
-                    helperMap.remove(edgeAbove);
-                    edgeTree.remove(edgeAbove);
-                    //add new edge
-                    edgeTree.add(edgeBelow);
-                    helperMap.put(edgeBelow, new VertexAndType(vertex, type));
 
                     //System.out.println(edgeAbove + " " + edgeBelow);
                     break;
@@ -289,31 +301,33 @@ public class TriangleDecomposition {
             }
         }
         order.add(currLeft);
-        int bottomVertexIdx = currRight;
-        //System.out.println("Order: " + order);
+        int bottomVertexIdx = currLeft;
+        System.out.println("Order: " + order);
 
         Stack<Integer> stack = new Stack<>();
         stack.push(order.get(0));
         stack.push(order.get(1));
 
         for (int j = 2; j < n - 1; j++) {
+            System.out.println("Stack: " + stack);
             int uj = order.get(j);
             if (sideOf(uj, topVertexIdx, bottomVertexIdx) != sideOf(stack.peek(), topVertexIdx, bottomVertexIdx)) {
+                System.out.println("Different side");
                 while (!stack.empty()) {
                     int v = stack.pop();
                     if (!stack.empty()) {
                         dcEdgeList.addEdge(points.get(uj), points.get(v));
-                        //System.out.println("Add edge");
+                        System.out.println("Add edge");
                     }
                 }
                 stack.push(order.get(j - 1));
                 stack.push(uj);
             } else {
                 int v = stack.pop();
-                while (!stack.empty() && canSee(uj, stack.peek(), points, topVertexIdx, bottomVertexIdx)) {
+                while (!stack.empty() && canSee(uj, v, stack.peek(), points, topVertexIdx, bottomVertexIdx)) {
                     v = stack.pop();
                     dcEdgeList.addEdge(points.get(uj), points.get(v));
-                    //System.out.println("Add edge");
+                    System.out.println("Add edge");
                 }
                 stack.push(v);
                 stack.push(uj);
@@ -321,8 +335,10 @@ public class TriangleDecomposition {
         }
 
         //draw edge from last vertex to every vertices remaining except his neighbours (top and bottom of stack):
-        stack.pop();
+
         int un = order.get(n-1);
+        System.out.println("Stack: " + stack + " un:"+ un);
+        stack.pop();
         while(stack.size() > 1){
             dcEdgeList.addEdge(points.get(un), points.get(stack.pop()));
         }
