@@ -4,52 +4,51 @@ import be.ulbvub.compgeom.Polygon;
 import be.ulbvub.compgeom.utils.*;
 import processing.core.PVector;
 
-import java.util.ArrayList;
+import java.util.Objects;
 
 public class SlabDecomposition {
     private final SweepLine sweepLine;
     private final EventQueue<EventTypes, Event<EventTypes>> queue;
     private final PVector direction;
-    /**
-     * Copy of original polygon in which we can cut without affecting the original polygon
-     */
-    private final Polygon workPolygon;
+    private final DoublyConnectedEdgeList decomposition;
 
     public SlabDecomposition(PVector direction, Polygon polygon) {
-        this.sweepLine = SweepLine.fromDirection(direction);
-        this.queue = EventQueue.fromDirection(direction);
+        @SuppressWarnings("SuspiciousNameCombination") final var orthogonalDirection = new PVector(direction.y, direction.x);
+
+        this.sweepLine = SweepLine.fromDirection(orthogonalDirection);
+        this.queue = EventQueue.fromDirection(orthogonalDirection);
         this.direction = direction;
-        this.workPolygon = new Polygon(polygon.points());
+        this.decomposition = new DoublyConnectedEdgeList(polygon);
     }
 
-    public void buildEventQueue(Polygon polygon) {
-        if (polygon.points().isEmpty()) return;
+    public void buildEventQueue() {
+        if (decomposition.getVertices().isEmpty()) return;
 
-        var slidingIterator = new SlidingIterator<>(3, polygon.ccwIterator());
+        var slidingIterator = new SlidingIterator<>(3, decomposition.getFaces().get(0).ccwIteratorEdge());
 
         while (slidingIterator.hasNext()) {
             var pointWindow = slidingIterator.next();
-            var prevPoint = pointWindow.get(0);
-            var currPoint = pointWindow.get(1);
-            var nextPoint = pointWindow.get(2);
+            var prevPoint = pointWindow.get(0).getOrigin();
+            var currPoint = pointWindow.get(1).getOrigin();
+            var nextPoint = pointWindow.get(2).getOrigin();
 
             // TODO: Generalize for all directions, now only X-axis
             EventTypes reason = null;
 
             switch (TurnDirection.orientation(prevPoint, currPoint, nextPoint)) {
                 case LEFT -> {
-                    if (currPoint.x <= prevPoint.x && currPoint.x <= nextPoint.x) {
+                    if (currPoint.getPoint().x <= prevPoint.getPoint().x && currPoint.getPoint().x <= nextPoint.getPoint().x) {
                         reason = EventTypes.Start;
-                    } else if (currPoint.x >= prevPoint.x && currPoint.x >= nextPoint.x) {
+                    } else if (currPoint.getPoint().x >= prevPoint.getPoint().x && currPoint.getPoint().x >= nextPoint.getPoint().x) {
                         reason = EventTypes.End;
                     } else {
                         reason = EventTypes.NormalPoint;
                     }
                 }
                 case RIGHT -> {
-                    if (currPoint.x <= prevPoint.x && currPoint.x <= nextPoint.x) {
+                    if (currPoint.getPoint().x <= prevPoint.getPoint().x && currPoint.getPoint().x <= nextPoint.getPoint().x) {
                         reason = EventTypes.Join;
-                    } else if (currPoint.x >= prevPoint.x && currPoint.x >= nextPoint.x) {
+                    } else if (currPoint.getPoint().x >= prevPoint.getPoint().x && currPoint.getPoint().x >= nextPoint.getPoint().x) {
                         reason = EventTypes.Split;
                     } else {
                         reason = EventTypes.ReflexPoint;
@@ -59,12 +58,10 @@ public class SlabDecomposition {
 
             // At this point, we should now what reason is
             assert reason != null;
-            reason.edges().add(new Line(prevPoint, currPoint));
-            reason.edges().add(new Line(currPoint, nextPoint));
             final EventTypes finalReason = reason;
             queue.add(new Event<>() {
                 @Override
-                public PVector getPoint() {
+                public DCVertex getVertex() {
                     return currPoint;
                 }
 
@@ -80,69 +77,81 @@ public class SlabDecomposition {
         return this.queue;
     }
 
-    public ArrayList<Polygon> run() {
-        final var decomposition = new ArrayList<Polygon>();
+    public void run() {
         while (!queue.isEmpty()) {
             final var event = queue.poll();
 
             final var reason = event.getReason();
             switch (reason) {
                 case Start -> {
-                    sweepLine.addAll(reason.edges());
+                    for (var iter = event.getVertex().iterateOutgoingEdges(); iter.hasNext(); ) {
+                        sweepLine.add(iter.next().toLine());
+                    }
                 }
                 case End -> {
-                    reason.edges().forEach(sweepLine::remove);
+                    for (var iter = event.getVertex().iterateOutgoingEdges(); iter.hasNext(); ) {
+                        sweepLine.remove(iter.next().toLine());
+                    }
                 }
                 case Split -> {
-                    emitReflex(event, decomposition);
-                    sweepLine.addAll(reason.edges());
+                    emitReflex(event);
+                    for (var iter = event.getVertex().iterateOutgoingEdges(); iter.hasNext(); ) {
+                        sweepLine.add(iter.next().toLine());
+                    }
                 }
                 case Join -> {
-                    reason.edges().forEach(sweepLine::remove);
-                    emitReflex(event, decomposition);
+                    for (var iter = event.getVertex().iterateOutgoingEdges(); iter.hasNext(); ) {
+                        sweepLine.remove(iter.next().toLine());
+                    }
+                    emitReflex(event);
                 }
                 case NormalPoint -> {
-                    sweepLine.remove(reason.edges().get(0));
-                    sweepLine.add(reason.edges().get(1));
+                    for (var iter = event.getVertex().iterateOutgoingEdges(); iter.hasNext(); ) {
+                        final var edge = iter.next().toLine();
+                        if (edge.leftMost().x < event.getPoint().x) {
+                            // Remove edges that end in current event
+                            sweepLine.remove(edge);
+                        } else {
+                            // Edge that starts in current event, add to sweepLine
+                            sweepLine.add(edge);
+                        }
+                    }
                 }
                 case ReflexPoint -> {
-                    sweepLine.remove(reason.edges().get(0));
-                    emitReflex(event, decomposition);
-                    sweepLine.add(reason.edges().get(1));
+                    // Remove edges that end in current event
+                    for (var iter = event.getVertex().iterateOutgoingEdges(); iter.hasNext(); ) {
+                        final var edge = iter.next().toLine();
+                        if (edge.leftMost().x <= event.getPoint().x) {
+                            sweepLine.remove(edge);
+                        }
+                    }
+
+                    emitReflex(event);
+
+                    // Edge that starts in current event, add to sweepLine
+                    for (var iter = event.getVertex().iterateIncomingEdges(); iter.hasNext(); ) {
+                        final var edge = iter.next().toLine();
+                        if (edge.rightMost().x > event.getPoint().x) {
+                            sweepLine.add(edge);
+                        }
+                    }
                 }
                 default -> throw new IllegalStateException("Unexpected value: " + event.getReason());
             }
         }
-
-        return decomposition;
     }
 
-    private void emitReflex(Event<EventTypes> event, ArrayList<Polygon> decomposition) {
-        final var reflexPoint = new Line(event.getPoint(), event.getPoint());
+    private void emitReflex(Event<EventTypes> event) {
+        @SuppressWarnings("SuspiciousNameCombination") final var reflexPoint = new Line(event.getPoint(), event.getPoint().copy().add(new PVector(direction.y, direction.x)));
 
         final var edgeAbove = sweepLine.higher(reflexPoint);
         final var edgeBelow = sweepLine.lower(reflexPoint);
 
-        if (edgeAbove != null && edgeBelow != null) {
-            final var upperIntersection = intersectionAlongSameYAxis(edgeAbove, event.getPoint());
-            final var lowerIntersection = intersectionAlongSameYAxis(edgeBelow, event.getPoint());
+        if (edgeAbove != null)
+            handleOneSidedCut(edgeAbove, event);
 
-            // Insert steiner point if point does not yet exist
-            if (!edgeAbove.start().equals(upperIntersection) && !edgeAbove.end().equals(upperIntersection))
-                workPolygon.addPoint(edgeAbove, upperIntersection);
-            if (!edgeBelow.start().equals(lowerIntersection) && !edgeBelow.end().equals(lowerIntersection))
-                workPolygon.addPoint(edgeBelow, lowerIntersection);
-
-            // TODO: Cutting like this makes it no longer a simple polygon
-            final var cutOffPolygon = workPolygon.cutFromPointToPoint(upperIntersection, lowerIntersection);
-            decomposition.add(cutOffPolygon);
-            workPolygon.addPoint(new Line(upperIntersection, lowerIntersection), event.getPoint());
-        } else if (edgeAbove != null) {
-            handleOneSidedIntersection(edgeAbove, event.getPoint(), decomposition);
-        } else if (edgeBelow != null) {
-            handleOneSidedIntersection(edgeBelow, event.getPoint(), decomposition);
-        }
-
+        if (edgeBelow != null)
+            handleOneSidedCut(edgeBelow, event);
     }
 
     private PVector intersectionAlongSameYAxis(Line edge, PVector reflexPoint) {
@@ -157,14 +166,34 @@ public class SlabDecomposition {
         }
     }
 
-    private void handleOneSidedIntersection(Line edge, PVector reflexPoint, ArrayList<Polygon> decomposition) {
-        final var intersection = intersectionAlongSameYAxis(edge, reflexPoint);
+    private void handleOneSidedCut(Line edge, Event<EventTypes> event) {
+        final var intersection = intersectionAlongSameYAxis(edge, event.getPoint());
+        DCHalfEdge halfEdge = null;
+        for (var dEdge : decomposition.getEdges()) {
+            final var dLine = dEdge.toLine();
+            if (dLine.rightMost().equals(edge.rightMost()) && TurnDirection.orientation(edge.start(), edge.end(), dLine.rightMost()) == TurnDirection.STRAIGHT) {
+                halfEdge = dEdge;
+                break;
+            }
+        }
+        Objects.requireNonNull(halfEdge, "A half edge should exist in DCEL that partially overlaps with the provided edge");
 
-        // Insert if needed Steiner point
-        if (!edge.start().equals(intersection) && !edge.end().equals(intersection))
-            workPolygon.addPoint(edge, intersection);
+        // Insert steiner point if point does not yet exist
+        DCVertex otherEndVertex;
+        if (halfEdge.getOrigin().getPoint().equals(intersection))
+            otherEndVertex = halfEdge.getOrigin();
+        else if (halfEdge.getTwin().getOrigin().getPoint().equals(intersection))
+            otherEndVertex = halfEdge.getTwin().getOrigin();
+        else
+            otherEndVertex = decomposition.addVertex(halfEdge, intersection);
 
-        final var cutOffPolygon = workPolygon.cutFromPointToPoint(intersection, reflexPoint);
-        decomposition.add(cutOffPolygon);
+        // Connect reflex point with above (steiner) point
+        if (!otherEndVertex.getPoint().equals(event.getVertex().getPoint()))
+            decomposition.addEdge(otherEndVertex, event.getVertex());
     }
+
+    public DoublyConnectedEdgeList getDecomposition() {
+        return decomposition;
+    }
+
 }

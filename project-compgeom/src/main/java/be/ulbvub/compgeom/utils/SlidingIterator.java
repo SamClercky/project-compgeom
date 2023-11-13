@@ -38,9 +38,9 @@ public class SlidingIterator<T> implements Iterator<ArrayList<T>> {
     public ArrayList<T> next() {
         // fill buffer until window is full or iterator depleted
         while (this.buffer.size() < this.windowSize && (this.backingIterator.hasNext() || !this.initialBuffer.isEmpty())) {
-            final var next = this.backingIterator.next();
-            if (next != null) {
+            if (backingIterator.hasNext()) {
                 // backing iterator is not yet depleted -> keep on adding
+                final var next = this.backingIterator.next();
                 this.buffer.add(next);
             } else {
                 // backing iterator is depleted, fill now with initial buffer
