@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview Report: Convex decomposition of simple polygons</title>
+</head>
+
+<body>
+    <h1>Preview Report: Convex decomposition of simple polygons</h1>
+
+    <h2>Meta:</h2>
+
+    <ul>
+        <li>Url to git: <a href="https://github.com/SamClercky/project-compgeom">
+                https://github.com/SamClercky/project-compgeom
+            </a>
+        </li>
+        <li>Authors:
+            <ul>
+                <li>Andreas Declerck</li>
+                <li>Célian Glénaz</li>
+                <li>Mevel Gilles</li>
+            </ul>
+        </li>
+        <li>Programming language: Java</li>
+    </ul>
+
+    <h2>Description of the project</h2>
+
+    <p>
+        The goal of the project is to explore different algorithms for decomposing
+        a simple polygon into convex subcomponents. For this project five different
+        algorithms are attempted. For this, multiple stategies are examined. The
+        first stategy is of not adding any extra points (called Steiner points).
+        The algorithms that are attempted with this are simple triangulation and
+        greedy decomposition. The second strategy is to allow adding adding extra
+        points to ease the decomposition. For this, the Chazelle algorithm, slab
+        decomposition and KD decomposition are going to be implemented.
+    </p>
+
+    <p>
+        To better be able to compare the performance of the different algorithms,
+        a Minkovski sums algorithm will be implemented where its first step is to
+        decompose the polygons on which the sum will be calculated. Reducing the
+        amount of decomposition components will here result generally in better
+        performance.
+    </p>
+
+    <p>
+        Here now follows a more thorough description of the different components of
+        the application and its implemented algorithms.
+    </p>
+
+    <h3>Triangulation</h3>
+    <small><strong>By Célian Glénaz</strong></small>
+
+    <h3>Greedy Decomposition</h3>
+    <small><strong>By Célian Glénaz</strong></small>
+
+    <h3>Slab Decomposition</h3>
+    <small><strong>By Andreas Declerck</strong></small>
+
+    <h3>KD Decomposition</h3>
+    <small><strong>By Andreas Declerck</strong></small>
+
+    <h3>Chazelle P-time decomposition algorithm</h3>
+    <small><strong>By Mevel Gilles</strong></small>
+
+    <h3>Minkovski sum algorithm</h3>
+    <small><strong>By Célian Glénaz</strong></small>
+
+    <h3>GUI</h3>
+    <small><strong>By Andreas Declerck</strong></small>
+
+    <h2>What has been done</h2>
+
+    <ul>
+        <li>Triangulation</li>
+        <li>Slab Decomposition (except some edge cases)</li>
+        <li>Chazelle P-time decomposition (preprocessing steps)</li>
+        <li>GUI</li>
+    </ul>
+
+    <h2>What still needs to be done</h2>
+
+    <ul>
+        <li>Greedy Decomposition</li>
+        <li>KD decomposition</li>
+        <li>Chazelle P-time decomposition</li>
+        <li>Minkovski sums</li>
+    </ul>
+
+    <h2>Reference</h2>
+</body>
+
+</html>
