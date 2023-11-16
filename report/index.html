@@ -5,6 +5,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Preview Report: Convex decomposition of simple polygons</title>
+
+    <script type="text/javascript">
+        class Citation extends HTMLElement {
+            constructor() {
+                super();
+            }
+
+            updateHTML() {
+                switch (this.src) {
+                    case "agarwal_polygon_2002":
+                        this.textContent = `(Agarwal, 2002)`;
+                        break;
+                    case "chazelle_decomposing_1979":
+                        this.textContent = `(Chazelle, 2002)`;
+                        break;
+                    default:
+                        this.textContent = `(${this.src}, nd)`;
+                        break;
+                }
+            }
+
+            connectedCallback() {
+                this.src = this.getAttribute("src") ?? "???";
+                this.updateHTML();
+            }
+
+            attributeChangedCallback(property, oldVal, newVal) {
+                console.log(property, oldVal, newVal);
+                if (oldVal === newVal) return;
+                this[property] = newVal;
+                this.updateHTML();
+            }
+
+            static get observedAttribute() {
+                return [`src`];
+            }
+        }
+
+        window.customElements.define("c-cite", Citation);
+    </script>
 </head>
 
 <body>
@@ -62,6 +102,10 @@
     <h3>Slab Decomposition</h3>
     <small><strong>By Andreas Declerck</strong></small>
 
+    <p>
+        <c-cite src="agarwal_polygon_2002" />
+    </p>
+
     <h3>KD Decomposition</h3>
     <small><strong>By Andreas Declerck</strong></small>
 
@@ -93,6 +137,23 @@
     </ul>
 
     <h2>Reference</h2>
+
+    <ul style="list-style: none;">
+        <li>
+            Agarwal, Pankaj K. and Flato, Eyal and Halperin, Dan. (2002).
+            <i>Polygon decomposition for efficient construction of Minkowski sums</i>.
+            Computational Geometry, 1-2, 39-61.
+            <a style="text-decoration: none;"
+                href="https://doi.org/10.1016/S0925-7721(01)00041-4">https://doi.org/10.1016/S0925-7721(01)00041-4</a>
+        </li>
+        <li>
+            Chazelle, Bernard and Dobkin, David. (1979).
+            <i>Decomposing a polygon into its convex parts</i>.
+            Proceedings of the eleventh annual ACM symposium on Theory of computing - STOC '79. ACM Press.
+            <a style="text-decoration: none;"
+                href="https://doi.org/10.1145/800135.804396">https://doi.org/10.1145/800135.804396</a>
+        </li>
+    </ul>
 </body>
 
 </html>
