@@ -95,10 +95,20 @@
 
     <h3>Triangulation</h3>
     <small><strong>By Célian Glénaz</strong></small>
-
+    <p>
+    Our implementation of triangulation is based on the linesweep algorithms seen in the course. The first part is to split a simple polygon into multiple Y-monotone polygons by adding carefuly choosen edges. The <strong>doubly connected edge list</strong> structure has been implemented to easily add edges and provide efficient way to represent the newly created polygons. At the end of the first part, the border of each face in the DCEL is a y-monotone polygon. Here is an example of result of our application at this stage: 
+    </p>
+    <img src="figures/Ymonotone.png" alt="Y-monotone decomposition">
+    <p>
+    Then the second part is spliting these polygons into triangles by using another linesweep algorithm with a stack. The result for the same polygon looks like this:
+    </p>
+    <img src="figures/triangulated.png" alt="Triangulation">
+   
     <h3>Greedy Decomposition</h3>
     <small><strong>By Célian Glénaz</strong></small>
-
+    <p>
+    This decomposition uses the triangulation algorithm but stop as soon as there is no more reflex vertex in the polygon. To be done.
+    </p>
     <h3>Slab Decomposition</h3>
     <small><strong>By Andreas Declerck</strong></small>
 
@@ -114,7 +124,7 @@
 
     <h3>Minkovski sum algorithm</h3>
     <small><strong>By Célian Glénaz</strong></small>
-
+    To be done.
     <h3>GUI</h3>
     <small><strong>By Andreas Declerck</strong></small>
 
