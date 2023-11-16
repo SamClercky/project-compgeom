@@ -67,6 +67,28 @@
         <li>Programming language: Java</li>
     </ul>
 
+    <div>
+        <strong>Some definitions:</strong>
+        <ul>
+            <li>
+                <strong>Steiner point:</strong> Point which is added to
+                facilitate a cut in the polygon.
+            </li>
+            <li>
+                <strong>Reflex point:</strong> Point which is pointed inwards
+                and reason why a simple polygon is not a convex hull.
+            </li>
+            <li>
+                <strong>Notch:</strong> Same as a reflex point, and mostly used
+                in the description of the Chazelle decomposition.
+            </li>
+            <li>
+                <strong>DCEL:</strong> Double Connected Edge List. Structure that
+                facilitates the addition/removal/updating of various vertices/edges/faces.
+            </li>
+        </ul>
+    </div>
+
     <h2>Description of the project</h2>
 
     <p>
@@ -96,35 +118,70 @@
     <h3>Triangulation</h3>
     <small><strong>By Célian Glénaz</strong></small>
     <p>
-    Our implementation of triangulation is based on the linesweep algorithms seen in the course. The first part is to split a simple polygon into multiple Y-monotone polygons by adding carefuly choosen edges. The <strong>doubly connected edge list</strong> structure has been implemented to easily add edges and provide efficient way to represent the newly created polygons. At the end of the first part, the border of each face in the DCEL is a y-monotone polygon. Here is an example of result of our application at this stage: 
+        Our implementation of triangulation is based on the linesweep algorithms seen in the course. The first part is
+        to split a simple polygon into multiple Y-monotone polygons by adding carefuly choosen edges. The <strong>doubly
+            connected edge list</strong> structure has been implemented to easily add edges and provide efficient way to
+        represent the newly created polygons. At the end of the first part, the border of each face in the DCEL is a
+        y-monotone polygon. Here is an example of result of our application at this stage:
     </p>
     <img src="figures/Ymonotone.png" alt="Y-monotone decomposition">
     <p>
-    Then the second part is spliting these polygons into triangles by using another linesweep algorithm with a stack. The result for the same polygon looks like this:
+        Then the second part is spliting these polygons into triangles by using another linesweep algorithm with a
+        stack. The result for the same polygon looks like this:
     </p>
     <img src="figures/triangulated.png" alt="Triangulation">
-   
+
     <h3>Greedy Decomposition</h3>
     <small><strong>By Célian Glénaz</strong></small>
     <p>
-    This decomposition uses the triangulation algorithm but stop as soon as there is no more reflex vertex in the polygon. To be done.
+        This decomposition uses the triangulation algorithm but stop as soon as there is no more reflex vertex in the
+        polygon. To be done.
     </p>
     <h3>Slab Decomposition</h3>
     <small><strong>By Andreas Declerck</strong></small>
 
     <p>
-        <c-cite src="agarwal_polygon_2002" />
+        The slab decomposition algorithm is described in <c-cite src="agarwal_polygon_2002" />.
+        It works by chosing a direction in which to cut and then on every reflex
+        point, cut the polygon up and down following the initial chosen
+        direction.
+    </p>
+
+    <p>
+        The way this algorithm is implemented is by taking a polygon, categorising
+        all vertices of this simple polygon into the following categories: start, end,
+        split, join, reflex point and other points. This information is then used in a
+        sweepline algorithm that travels perpendicular to the initial direction
+        over the field with the vertices as its events. This is done to maintain a list
+        of edges above and below a certain point, so only a limited amount of edges need
+        to be tested for intersection. Once an edge above/below a reflex point has been
+        found, a cut will be made along the initialy chosen direction.
+    </p>
+
+    <p>
+        For this algorithm, all events are used to update the sweepline structure, and
+        maintain an ordered list of all edges currently intersecting with the sweepline.
+        The vertices considered reflex points are the vertices that are classified as
+        either a split, a join or a reflex point.
     </p>
 
     <h3>KD Decomposition</h3>
     <small><strong>By Andreas Declerck</strong></small>
+
+    <p>
+        To be done.
+    </p>
 
     <h3>Chazelle P-time decomposition algorithm</h3>
     <small><strong>By Mevel Gilles</strong></small>
 
     <h3>Minkovski sum algorithm</h3>
     <small><strong>By Célian Glénaz</strong></small>
-    To be done.
+
+    <p>
+        To be done.
+    </p>
+
     <h3>GUI</h3>
     <small><strong>By Andreas Declerck</strong></small>
 
