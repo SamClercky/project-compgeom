@@ -1,9 +1,14 @@
 plugins {
     id 'java'
+    id 'application'
 }
 
 group = 'be.ulbvub'
 version = '1.0-SNAPSHOT'
+
+application {
+    mainClass = "be.ulbvub.compgeom.Main"
+}
 
 repositories {
     mavenCentral()
