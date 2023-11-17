@@ -31,7 +31,7 @@ public class MainScreen extends PApplet {
     @Override
     public void settings() {
         super.settings();
-        size(800, 640, P3D);
+        size(800, 640, P2D);
     }
 
     @Override
@@ -144,7 +144,7 @@ public class MainScreen extends PApplet {
                                 // Draw statistics
                                 final var applet = ctx2.applet();
 
-                                final var pos = ctx2.size().copy().sub(new PVector(260, 50));
+                                final var pos = ctx2.size().copy().sub(new PVector(260, 100));
 
                                 ctx2.applyTextStyle();
                                 applet.text("Number of vertices: " + polygonRegion.getPolygon().points().size() + "\n" +

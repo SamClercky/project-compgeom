@@ -59,8 +59,8 @@ public class TransformGuard implements Drawable {
         // setup transformation
         applet.pushMatrix();
         applet.translate(translation.x, translation.y);
-        applet.rotate(rotationAngle, 0.0f, 0.0f, 1.0f);
-        applet.scale(scale.x, scale.y, 1.0f);
+//        applet.rotate(rotationAngle, 0.0f, 0.0f, 1.0f);
+//        applet.scale(scale.x, scale.y, 1.0f);
 
         // draw further
         child.accept(context);
