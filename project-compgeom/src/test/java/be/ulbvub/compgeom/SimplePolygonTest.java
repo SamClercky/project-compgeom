@@ -5,12 +5,9 @@ import org.junit.jupiter.api.Test;
 import processing.core.PVector;
 
 import java.text.DecimalFormat;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Set;
+import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 class SimplePolygonTest {
 
@@ -32,11 +29,11 @@ class SimplePolygonTest {
 
 	@Test
 	void given_polygon_then_get_notch_range_returns_the_actual_notch_range() {
-		final Set<PVector> expectedRange = new HashSet<>(Set.of(
+		final List<PVector> expectedRange = new ArrayList<>(Set.of(
 				new PVector(2, 2),
 				new PVector(2, 0)
 		));
-		final Set<PVector> flagPolygonNotchRange = flagPolygon.getNotchRange(new PVector(1, 1), 1);
+		final List<PVector> flagPolygonNotchRange = flagPolygon.getNotchRange(new PVector(1, 1), 1);
 
 		assertEquals(expectedRange, flagPolygonNotchRange);
 	}
@@ -59,6 +56,25 @@ class SimplePolygonTest {
 		assertEquals(format.format(Math.PI/2), format.format(angle1));
 		assertEquals(format.format(Math.PI/4), format.format(angle2));
 		assertEquals(format.format(Math.PI/6), format.format(angle3));
+	}
+
+	@Test
+	void given_2_points_then_within_polygon_returns_correct_value() {
+		assertTrue(flagPolygon.isWithinPolygon(new PVector(0, 0), new PVector(2, 0)));
+		assertTrue(flagPolygon.isWithinPolygon(new PVector(1, 1), new PVector(0, 2)));
+		assertFalse(flagPolygon.isWithinPolygon(new PVector(0, 0), new PVector(0, 2)));
+	}
+
+	@Test
+	void intersection_test() {
+		final PVector p1 = new PVector(3, 11);
+		final PVector q1 = new PVector(6, 2);
+		final PVector p2 = new PVector(0, 8);
+		final PVector q2 = new PVector(4, 8);
+		final PVector q22 = new PVector(3.99f, 8);
+
+		assertTrue(SimplePolygon.doIntersect(p1, q1, p2, q2));
+		assertFalse(SimplePolygon.doIntersect(p1, q1, p2, q22));
 	}
 
 }
