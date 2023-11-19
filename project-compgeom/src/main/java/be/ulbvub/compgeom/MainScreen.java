@@ -1,5 +1,6 @@
 package be.ulbvub.compgeom;
 
+import be.ulbvub.compgeom.kd.KdDecomposition;
 import be.ulbvub.compgeom.slab.SlabDecomposition;
 import be.ulbvub.compgeom.triangles.TriangleDecomposition;
 import be.ulbvub.compgeom.ui.*;
@@ -82,6 +83,19 @@ public class MainScreen extends PApplet {
                     if (c.polygon().points().size() > 3) {
                         final var algorithm = new SlabDecomposition(c.direction(), c.polygon());
                         algorithm.buildEventQueue();
+                        algorithm.run();
+                        dcel = algorithm.getDecomposition();
+                        JOptionPane.showMessageDialog(frame, "Decomposition complete");
+                    } else {
+                        JOptionPane.showMessageDialog(
+                                frame,
+                                "Not enough vertices to successfully do a decomposition",
+                                "Decomposition failed",
+                                JOptionPane.ERROR_MESSAGE);
+                    }
+                } else if (config instanceof DecompositionConfig.KdConfig c) {
+                    if (c.polygon().points().size() > 3) {
+                        final var algorithm = new KdDecomposition(polygonRegion.getPolygon());
                         algorithm.run();
                         dcel = algorithm.getDecomposition();
                         JOptionPane.showMessageDialog(frame, "Decomposition complete");

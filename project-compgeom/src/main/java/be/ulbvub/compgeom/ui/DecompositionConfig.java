@@ -77,4 +77,36 @@ public abstract class DecompositionConfig {
         }
     }
 
+    public static final class KdConfig extends DecompositionConfig {
+        private final Polygon polygon;
+
+        public KdConfig(Polygon polygon) {
+            this.polygon = polygon;
+        }
+
+        public Polygon polygon() {
+            return polygon;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) return true;
+            if (obj == null || obj.getClass() != this.getClass()) return false;
+            var that = (KdConfig) obj;
+            return Objects.equals(this.polygon, that.polygon);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(polygon);
+        }
+
+        @Override
+        public String toString() {
+            return "KdConfig[" +
+                    "polygon=" + polygon + ']';
+        }
+
+    }
+
 }

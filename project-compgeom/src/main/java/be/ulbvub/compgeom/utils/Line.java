@@ -4,8 +4,43 @@ import processing.core.PVector;
 
 public record Line(PVector start, PVector end) {
 
+    public boolean intersectRay(Line ray) {
+        return TurnDirection.orientationRaw(ray.start, ray.end, start) * TurnDirection.orientationRaw(ray.start, ray.end, end) <= 0;
+    }
+
     public boolean intersects(Line other) {
-        return false;
+        return this.intersectRay(other) && other.intersectRay(this);
+    }
+
+    public PVector intersectionPointWithRay(Line ray) {
+        final var dir = ray.end.copy().sub(ray.start);
+        final var lv = ray.start; // linear variation
+        final var alpha = (dir.y * (end.x - lv.x) - end.y * dir.x + lv.y * dir.x) / (start.y * dir.x - end.y * dir.x - dir.y * (start.x - end.x));
+
+        // Assert that the target is on the line
+        assert alpha >= 0;
+        assert alpha < 1;
+
+        // Return found position
+        return start.copy().mult(alpha).add(end.copy().mult(1 - alpha));
+    }
+
+    public float pointOnRay(PVector point) {
+        final var dir = end.copy().sub(start);
+
+        var beta = 0.0f;
+        final var betaDir = point.copy().sub(start);
+
+        if (dir.x != 0.0f) {
+            beta = betaDir.x / dir.x;
+        } else if (dir.y != 0.0f) {
+            beta = betaDir.y / dir.y;
+        }
+
+        // Assert on ray
+        assert betaDir.x == beta * dir.x && betaDir.y == beta * dir.y;
+
+        return beta;
     }
 
     public AABB getAABB() {
