@@ -14,6 +14,8 @@ class SimplePolygonTest {
 	//A flag-shaped polygon
 	private SimplePolygon flagPolygon;
 
+	private SimplePolygon bigNonConvexShape;
+
 	@BeforeEach
 	void setUp() {
 		//The (1, 1) point is a reflex point
@@ -24,6 +26,34 @@ class SimplePolygonTest {
 				new PVector(0, 2),
 				new PVector(2, 2),
 				new PVector(2, 0)
+		)));
+		this.bigNonConvexShape = new SimplePolygon(new ArrayList<>(Arrays.asList(
+				new PVector(6, 0),
+				//Reflex point
+				new PVector(6, 2),
+				new PVector(4, 1),
+				//Reflex point
+				new PVector(4, 5),
+				new PVector(2, 3),
+				new PVector(0, 6),
+				//Reflex point
+				new PVector(4, 7),
+				//Reflex point
+				new PVector(4, 8),
+				new PVector(0, 8),
+				//Reflex point
+				new PVector(3, 11),
+				new PVector(2, 14),
+				//Reflex point
+				new PVector(6, 12),
+				new PVector(9, 15),
+				//Reflex point
+				new PVector(11, 10),
+				new PVector(14, 12),
+				new PVector(12, 5),
+				//Reflex point
+				new PVector(9, 7),
+				new PVector(10, 1)
 		)));
 	}
 
@@ -60,9 +90,34 @@ class SimplePolygonTest {
 
 	@Test
 	void given_2_points_then_within_polygon_returns_correct_value() {
-		assertTrue(flagPolygon.isWithinPolygon(new PVector(0, 0), new PVector(2, 0)));
-		assertTrue(flagPolygon.isWithinPolygon(new PVector(1, 1), new PVector(0, 2)));
-		assertFalse(flagPolygon.isWithinPolygon(new PVector(0, 0), new PVector(0, 2)));
+		assertTrue(flagPolygon.exists(new PVector(0, 0), new PVector(2, 0)));
+		assertTrue(flagPolygon.exists(new PVector(1, 1), new PVector(0, 2)));
+		assertFalse(flagPolygon.exists(new PVector(0, 0), new PVector(0, 2)));
+	}
+
+	@Test
+	void given_2_points_of_P_then_is_inside_returns_correct_value() {
+		//Check inside is true
+		assertTrue(flagPolygon.isInside(new PVector(1, 1), new PVector(2, 2)));
+		assertTrue(flagPolygon.isInside(new PVector(2, 2), new PVector(1, 1)));
+		//Check outside is false
+		assertFalse(flagPolygon.isInside(new PVector(0, 0), new PVector(0, 2)));
+		assertFalse(flagPolygon.isInside(new PVector(0, 2), new PVector(0, 0)));
+		//Check for a b where the segment a b is in P
+		assertTrue(flagPolygon.isInside(new PVector(1, 1), new PVector(0, 0)));
+		assertTrue(flagPolygon.isInside(new PVector(0, 0), new PVector(1, 1)));
+
+		//Check for a more complex polygon
+		assertFalse(bigNonConvexShape.isInside(new PVector(4, 5), new PVector(0, 8)));
+		assertFalse(bigNonConvexShape.isInside(new PVector(0, 8), new PVector(4, 5)));
+		assertFalse(bigNonConvexShape.isInside(new PVector(4, 5), new PVector(3, 11)));
+		assertFalse(bigNonConvexShape.isInside(new PVector(3, 11), new PVector(4, 5)));
+
+		assertTrue(bigNonConvexShape.isInside(new PVector(9, 7), new PVector(6, 12)));
+		assertTrue(bigNonConvexShape.isInside(new PVector(6, 12), new PVector(9, 7)));
+
+		//Check that isInside throws when dealing with non-existing points of P
+		assertThrows(IllegalArgumentException.class, () -> flagPolygon.isInside(new PVector(15, -4), new PVector(2, 2)));
 	}
 
 	@Test
