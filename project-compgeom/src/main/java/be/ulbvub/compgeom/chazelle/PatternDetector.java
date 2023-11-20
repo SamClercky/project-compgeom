@@ -23,21 +23,6 @@ public class PatternDetector {
 		this.nP = notches.size();
 	}
 
-	private boolean isWithinP(final PVector a, final PVector b) {
-		for(final PVector[] edge : polygon.getEdges()) {
-			//If one of the extremity is common, not necessary to check as tested segments are inside P.
-			//Only need to check if the tested segment crosses a non-incident segment
-			if(edge[0].equals(a) || edge[0].equals(b) || edge[1].equals(a) || edge[1].equals(b)) {
-				continue;
-			}
-			/*if(doIntersect(a, b, edge[0], edge[1])) {
-				return false;
-			}*/
-		}
-
-		return true;
-	}
-
 	private PVector[] makeR_ij(final PVector v_i, final PVector v_j) {
 		boolean inRange = false;
 		PVector bestT = null;
@@ -132,7 +117,7 @@ public class PatternDetector {
 					final PVector[] rPrime_ij = SimplePolygon.getTurnDirection(r[1], r[0], r_ij[1]) < 0 ? r : r_ij;
 					//Get M_ij
 					final PVector M_ij = lPrime_ik[0]; //= rPrime_ij[0] too.
-					final boolean withinP = isWithinP(i, M_ij) && isWithinP(j, M_ij); //polygon.isWithinPolygon(i, M_ij) && polygon.isWithinPolygon(j, M_ij);
+					final boolean withinP = polygon.isInside(i, M_ij) && polygon.isInside(j, M_ij);
 					System.out.println("i: " + i.toString() + ", j: " + j.toString() + ", M: " + M_ij.toString());
 					System.out.println("within?: " + withinP);
 					final var data = new PatternData(lPrime_ik, rPrime_ij, M_ij, withinP);

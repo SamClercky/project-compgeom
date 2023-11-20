@@ -147,7 +147,7 @@ public record SimplePolygon(List<PVector> points) {
 	 * @param b a segment extremity
 	 * @return true if a b exists within this instance
 	 */
-	public boolean isWithinPolygon(final PVector a, final PVector b) {
+	public boolean exists(final PVector a, final PVector b) {
 		//Check if both points are in the polygon
 		if(points.contains(a) && points.contains(b)) {
 			final int index = points.indexOf(a);
@@ -157,6 +157,53 @@ public record SimplePolygon(List<PVector> points) {
 		}
 
 		return false;
+	}
+
+	private boolean isAtoBInside(final PVector a, final PVector b) {
+		//Check for notches clockwise
+		final List<PVector> notches = new NotchFinder(this).findNotches().getNotches();
+
+		//No notches mean the polygon is convex, hence a b is always inside with a and b points of P.
+		if(notches.isEmpty()) {
+			return true;
+		}
+		boolean inBetween = false;
+
+		for(final PVector point : points) {
+			if(inBetween && notches.contains(point)) {
+				//Check if left turn
+				if(getTurnDirection(a, point, b) > 0) {
+					return false;
+				}
+			}
+			if(point.equals(a)) {
+				inBetween = true;
+			}
+			if(point.equals(b)) {
+				break;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check whether the segment a b, where both a and b are points of the polygon, is inside this polygon.
+	 *
+	 * @param a an endpoint
+	 * @param b an endpoint
+	 * @return true if a b is inside this polygon's instance
+	 */
+	public boolean isInside(final PVector a, final PVector b) {
+		//If the segment a b is a segment of this polygon, then a b is inside
+		if(exists(a, b)) {
+			return true;
+		}
+		if(!(points.contains(a) && points.contains(b))) {
+			throw new IllegalArgumentException("Both endpoints must be points of this polygon's instance");
+		}
+
+		return isAtoBInside(a, b) && isAtoBInside(b, a);
 	}
 
 	@Override
@@ -211,7 +258,6 @@ public record SimplePolygon(List<PVector> points) {
 		//(x2 - x1) * (y3 - y1) - (y2 - y1) * (x3 - x1)
 		final double value = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
 
-		System.out.println("val: " + value);
 		if(value > 0) {
 			return 1;
 		} else if(value < 0) {
