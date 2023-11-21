@@ -55,6 +55,7 @@ public class KdDecomposition {
                 // X-axis
                 final var middleIndexX = range.middleIndexX();
                 final var middleReflex = xReflex.get(middleIndexX);
+                System.out.println("Reflex handled X: " + middleReflex.toString());
                 final var ray = new Line(middleReflex.getPoint(), middleReflex.getPoint().copy().add(new PVector(0, 1)));
                 insertEdge(middleReflex, ray);
 
@@ -63,8 +64,8 @@ public class KdDecomposition {
             } else {
                 // Y-axis
                 final var middleIndexY = range.middleIndexY();
-
                 final var middleReflex = yReflex.get(middleIndexY);
+                System.out.println("Reflex handled Y: " + middleReflex.toString());
                 final var ray = new Line(middleReflex.getPoint(), middleReflex.getPoint().copy().add(new PVector(1, 0)));
                 insertEdge(middleReflex, ray);
 
@@ -98,8 +99,10 @@ public class KdDecomposition {
                     if (beta < 0 && beta > minLowerBeta) {
                         // lower edge found
                         minLowerEdge = nextEdge;
+                        minLowerBeta = beta;
                     } else if (beta > 0 && beta < minUpperBeta) {
                         minUpperEdge = nextEdge;
+                        minUpperBeta = beta;
                     }
                     // else beta == 0 -> ignore as this is the current edge
                 }
@@ -109,17 +112,26 @@ public class KdDecomposition {
         // Ok we have found here now possibly an upper and a lower edge -> connect
         if (minUpperEdge != null) {
             final var intersection = minUpperEdge.toLine().intersectionPointWithRay(ray);
-            final var newVertex = decomposition.addVertex(minUpperEdge, intersection);
+            final var newVertex = getOrInsertVertex(minUpperEdge, intersection);
             decomposition.addEdge(reflexPoint, newVertex);
         }
         if (minLowerEdge != null) {
             final var intersection = minLowerEdge.toLine().intersectionPointWithRay(ray);
-            final var newVertex = decomposition.addVertex(minLowerEdge, intersection);
+            final var newVertex = getOrInsertVertex(minLowerEdge, intersection);
             decomposition.addEdge(reflexPoint, newVertex);
         }
     }
 
     public DoublyConnectedEdgeList getDecomposition() {
         return decomposition;
+    }
+
+    private DCVertex getOrInsertVertex(DCHalfEdge edge, PVector newPoint) {
+        if (edge.getOrigin().getPoint().equals(newPoint))
+            return edge.getOrigin();
+        else if (edge.getTwin().getOrigin().getPoint().equals(newPoint))
+            return edge.getTwin().getOrigin();
+        else
+            return decomposition.addVertex(edge, newPoint);
     }
 }

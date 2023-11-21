@@ -76,71 +76,71 @@ class KdDecompositionTest {
     }
 
     // TESTS ARE WRONG -> DUPLICATE POINTS WRONGLY COUNTED
-//    @Test
-//    void decomposeIdents() throws IOException {
-//        final var polygonResource = getClass().getClassLoader().getResource("indented.poly").getFile();
-//        final var reader = new PolygonReader();
-//        reader.readFile(new File(polygonResource));
-//        final var polygon = reader.getPolygon();
-//
-//        final var decomposition = new KdDecomposition(polygon);
-//        decomposition.run();
-//        final var result = decomposition.getDecomposition();
-//
-//        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
-//        assertEquals(18, result.getVertices().size());
-//        assertEquals(13, result.getFaces().size());
-//        assertEquals(60, result.getEdges().size());
-//    }
-//
-//    @Test
-//    void decomposeIdentsHorizontal() throws IOException {
-//        final var polygonResource = getClass().getClassLoader().getResource("indented-horizontal.poly").getFile();
-//        final var reader = new PolygonReader();
-//        reader.readFile(new File(polygonResource));
-//        final var polygon = reader.getPolygon();
-//
-//        final var decomposition = new KdDecomposition(polygon);
-//        decomposition.run();
-//        final var result = decomposition.getDecomposition();
-//
-//        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
-//        assertEquals(18, result.getVertices().size());
-//        assertEquals(13, result.getFaces().size());
-//        assertEquals(60, result.getEdges().size());
-//    }
-//
-//    @Test
-//    void decomposeIdentsSkewed() throws IOException {
-//        final var polygonResource = getClass().getClassLoader().getResource("indented-skewed.poly").getFile();
-//        final var reader = new PolygonReader();
-//        reader.readFile(new File(polygonResource));
-//        final var polygon = reader.getPolygon();
-//
-//        final var decomposition = new KdDecomposition(polygon);
-//        decomposition.run();
-//        final var result = decomposition.getDecomposition();
-//
-//        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
-//        assertEquals(18, result.getVertices().size());
-//        assertEquals(13, result.getFaces().size());
-//        assertEquals(60, result.getEdges().size());
-//    }
-//
-//    @Test
-//    void decomposeInternalSplitJoin() throws IOException {
-//        final var polygonResource = getClass().getClassLoader().getResource("internal-split-join.poly").getFile();
-//        final var reader = new PolygonReader();
-//        reader.readFile(new File(polygonResource));
-//        final var polygon = reader.getPolygon();
-//
-//        final var decomposition = new KdDecomposition(polygon);
-//        decomposition.run();
-//        final var result = decomposition.getDecomposition();
-//
-//        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
-//        assertEquals(37, result.getVertices().size());
-//        assertEquals(28, result.getFaces().size());
-//        assertEquals(128, result.getEdges().size());
-//    }
+    @Test
+    void decomposeIdents() throws IOException {
+        final var polygonResource = getClass().getClassLoader().getResource("indented.poly").getFile();
+        final var reader = new PolygonReader();
+        reader.readFile(new File(polygonResource));
+        final var polygon = reader.getPolygon();
+
+        final var decomposition = new KdDecomposition(polygon);
+        decomposition.run();
+        final var result = decomposition.getDecomposition();
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertEquals(12, result.getVertices().size());
+        assertEquals(7, result.getFaces().size());
+        assertEquals(18*2, result.getEdges().size());
+    }
+
+    @Test
+    void decomposeIdentsHorizontal() throws IOException {
+        final var polygonResource = getClass().getClassLoader().getResource("indented-horizontal.poly").getFile();
+        final var reader = new PolygonReader();
+        reader.readFile(new File(polygonResource));
+        final var polygon = reader.getPolygon();
+
+        final var decomposition = new KdDecomposition(polygon);
+        decomposition.run();
+        final var result = decomposition.getDecomposition();
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertEquals(12, result.getVertices().size());
+        assertEquals(7, result.getFaces().size());
+        assertEquals(18*2, result.getEdges().size());
+    }
+
+    @Test
+    void decomposeIdentsSkewed() throws IOException {
+        final var polygonResource = getClass().getClassLoader().getResource("indented-skewed.poly").getFile();
+        final var reader = new PolygonReader();
+        reader.readFile(new File(polygonResource));
+        final var polygon = reader.getPolygon();
+
+        final var decomposition = new KdDecomposition(polygon);
+        decomposition.run();
+        final var result = decomposition.getDecomposition();
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertEquals(12, result.getVertices().size());
+        assertEquals(7, result.getFaces().size());
+        assertEquals(18*2, result.getEdges().size());
+    }
+
+    @Test
+    void decomposeInternalSplitJoin() throws IOException {
+        final var polygonResource = getClass().getClassLoader().getResource("internal-split-join.poly").getFile();
+        final var reader = new PolygonReader();
+        reader.readFile(new File(polygonResource));
+        final var polygon = reader.getPolygon();
+
+        final var decomposition = new KdDecomposition(polygon);
+        decomposition.run();
+        final var result = decomposition.getDecomposition();
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertEquals(19, result.getVertices().size());
+        assertEquals(15, result.getFaces().size());
+        assertEquals(66, result.getEdges().size());
+    }
 }

@@ -14,6 +14,6 @@ public record KdRange(int xStart, int xEnd, int yStart, int yEnd, boolean isX) {
     }
 
     public boolean isEmpty() {
-        return isX ? xStart >= yEnd : yStart >= yEnd;
+        return xStart >= yEnd || yStart >= yEnd;
     }
 }
