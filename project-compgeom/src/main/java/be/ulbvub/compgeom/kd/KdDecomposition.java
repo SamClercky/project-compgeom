@@ -4,18 +4,24 @@ import be.ulbvub.compgeom.Polygon;
 import be.ulbvub.compgeom.utils.*;
 import processing.core.PVector;
 
+import java.util.ArrayList;
+import java.util.Stack;
+
 public class KdDecomposition {
 
-    private final MedianQueue<DCVertex> xReflex;
-    private final MedianQueue<DCVertex> yReflex;
+    private final ArrayList<DCVertex> xReflex;
+    private final ArrayList<DCVertex> yReflex;
     private final DoublyConnectedEdgeList decomposition;
 
     public KdDecomposition(Polygon polygon) {
-        xReflex = new MedianQueue<>(new DCVertexXComparator());
-        yReflex = new MedianQueue<>(new DCVertexYComparator());
+        xReflex = new ArrayList<>();
+        yReflex = new ArrayList<>();
         decomposition = new DoublyConnectedEdgeList(polygon);
 
-        findReflexPoints();
+        findReflexPoints(); // O(n)
+        // Sort now, so we have the correct order
+        xReflex.sort(new DCVertexXComparator()); // O(n log(n))
+        yReflex.sort(new DCVertexYComparator()); // O(n log(n))
     }
 
     private void findReflexPoints() {
@@ -37,25 +43,33 @@ public class KdDecomposition {
     }
 
     public void run() {
-        boolean alongXAxis = true;
+        final var agenda = new Stack<KdRange>();
+        agenda.push(new KdRange(0, xReflex.size(), 0, yReflex.size(), true));
 
-        while (!xReflex.isEmpty() || !yReflex.isEmpty()) {
-            if (alongXAxis && !xReflex.isEmpty()) {
-                final var reflexPoint = xReflex.poll();
-                yReflex.remove(reflexPoint); // only 1 time per point
-                final var ray = new Line(reflexPoint.getPoint(), new PVector(0, 1));
+        while (!agenda.isEmpty()) {
+            final var range = agenda.pop();
+            if (range.isEmpty())
+                continue;
 
-                insertEdge(reflexPoint, ray);
+            if (range.isX()) {
+                // X-axis
+                final var middleIndexX = range.middleIndexX();
+                final var middleReflex = xReflex.get(middleIndexX);
+                final var ray = new Line(middleReflex.getPoint(), middleReflex.getPoint().copy().add(new PVector(0, 1)));
+                insertEdge(middleReflex, ray);
 
-                alongXAxis = false; // alternate to other
-            } else if (!alongXAxis && !yReflex.isEmpty()) {
-                final var reflexPoint = yReflex.poll();
-                xReflex.remove(reflexPoint); // only 1 time per point
-                final var ray = new Line(reflexPoint.getPoint(), new PVector(1, 0));
+                agenda.push(new KdRange(range.xStart(), middleIndexX, range.yStart(), range.yEnd(), false));
+                agenda.push(new KdRange(middleIndexX + 1, range.xEnd(), range.yStart(), range.yEnd(), false));
+            } else {
+                // Y-axis
+                final var middleIndexY = range.middleIndexY();
 
-                insertEdge(reflexPoint, ray);
+                final var middleReflex = yReflex.get(middleIndexY);
+                final var ray = new Line(middleReflex.getPoint(), middleReflex.getPoint().copy().add(new PVector(1, 0)));
+                insertEdge(middleReflex, ray);
 
-                alongXAxis = true; // alternate to other
+                agenda.push(new KdRange(range.xStart(), range.xEnd(), range.yStart(), middleIndexY, true));
+                agenda.push(new KdRange(range.xStart(), range.xEnd(), middleIndexY + 1, range.yEnd(), true));
             }
         }
     }
