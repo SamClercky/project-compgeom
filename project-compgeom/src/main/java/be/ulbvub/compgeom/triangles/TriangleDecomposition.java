@@ -84,28 +84,29 @@ public class TriangleDecomposition {
     }
 
     public static DoublyConnectedEdgeList triangulatePolygon(Polygon p){
+        return decompose(p, false);
+    }
+
+    public static DoublyConnectedEdgeList decompose(Polygon p, boolean greedy){
         //first split into y-monotone polygons
-        DoublyConnectedEdgeList dcEdgeList = splitMonotone(p);
+        DoublyConnectedEdgeList dcEdgeList = splitMonotone(p, greedy);
         System.out.println("Number of monotone polygons:" + dcEdgeList.getFaces().size());
         for(DCFace face : (ArrayList<DCFace>) dcEdgeList.getFaces().clone()){//copy list because triangulation modify it
-            triangulateYMonotonePolygon(dcEdgeList, face);
+            triangulateYMonotonePolygon(dcEdgeList, face, greedy);
+            if(greedy && !dcEdgeList.hasReflex())break;
         }
         return dcEdgeList;
     }
 
-
     public static DoublyConnectedEdgeList splitMonotone(Polygon p) {
+        return splitMonotone(p ,true);
+    }
+    public static DoublyConnectedEdgeList splitMonotone(Polygon p, boolean greedy) {
 
         System.out.println("Split monotone:");
-        //get points in counter-clockwise order
-        Iterator<PVector> iter = p.ccwIterator();
-        ArrayList<PVector> points = new ArrayList<>();
-        assert iter != null;
-        while (iter.hasNext()) {
-            points.add(iter.next());
-        }
+
         //System.out.println("Points:" + points);
-        DoublyConnectedEdgeList dcEdgeList = new DoublyConnectedEdgeList(points);
+        DoublyConnectedEdgeList dcEdgeList = new DoublyConnectedEdgeList(p.points());
 
         ArrayList<DCVertex> vertices = (ArrayList<DCVertex>) dcEdgeList.getVertices().clone();
         vertices.sort((left, right) -> {
@@ -147,7 +148,7 @@ public class TriangleDecomposition {
                     //get left edge and connect "vertex" to his helper
                     DCHalfEdge leftOfVertex = edgeTree.floor(nextEdge);
                     if (leftOfVertex == null) throw new IllegalArgumentException("It must be a simple polygon");
-                    dcEdgeList.addEdge(vertex, helperMap.get(leftOfVertex).getVertex());
+                    if(dcEdgeList.addEdge(vertex, helperMap.get(leftOfVertex).getVertex()) && greedy) return dcEdgeList;
 
                     //update the helper for left edge
                     helperMap.put(leftOfVertex, new VertexAndType(vertex, type));
@@ -161,7 +162,8 @@ public class TriangleDecomposition {
                 }
                 case MERGE: {
                     if (helperMap.get(prevEdge).getType() == VertexType.MERGE) {
-                        dcEdgeList.addEdge(vertex, helperMap.get(prevEdge).getVertex());
+
+                        if(dcEdgeList.addEdge(vertex, helperMap.get(prevEdge).getVertex()) && greedy) return dcEdgeList;
                     }
                     edgeTree.remove(prevEdge);
                     helperMap.remove(prevEdge);
@@ -172,7 +174,7 @@ public class TriangleDecomposition {
                     if (leftOfVertex == null) throw new IllegalArgumentException("It must be a simple polygon");
 
                     if (helperMap.get(leftOfVertex).getType() == VertexType.MERGE) {
-                        dcEdgeList.addEdge(vertex, helperMap.get(leftOfVertex).getVertex());
+                        if(dcEdgeList.addEdge(vertex, helperMap.get(leftOfVertex).getVertex()) && greedy) return dcEdgeList;
                     }
                     helperMap.put(leftOfVertex, new VertexAndType(vertex, type));
 
@@ -187,8 +189,7 @@ public class TriangleDecomposition {
                     VertexAndType helper = helperMap.get(prevEdge);
                     //System.out.println("Helper type:" + helper.getType().toString());
                     if (helper.getType() == VertexType.MERGE) {
-                        dcEdgeList.addEdge(vertex, helper.getVertex());
-
+                        if(dcEdgeList.addEdge(vertex, helper.getVertex()) && greedy) return dcEdgeList;
                     }
                     helperMap.remove(prevEdge);
                     edgeTree.remove(prevEdge);
@@ -200,11 +201,10 @@ public class TriangleDecomposition {
 
                     VertexAndType helper = helperMap.get(prevEdge);
 
-                    if (helper != null) {//edge on left side, TODO test if always true
+                    if (helper != null) {//edge on left side
                         //check for merge and remove old edge
                         if (helper.getType() == VertexType.MERGE) {
-                            dcEdgeList.addEdge(vertex, helper.getVertex());
-
+                            if(dcEdgeList.addEdge(vertex, helper.getVertex()) && greedy) return dcEdgeList;
                         }
                         helperMap.remove(prevEdge);
                         edgeTree.remove(prevEdge);
@@ -218,7 +218,7 @@ public class TriangleDecomposition {
                         if (leftOfVertex == null) throw new IllegalArgumentException("It must be a simple polygon");
                         helper = helperMap.get(leftOfVertex);
                         if (helper.getType() == VertexType.MERGE) {
-                            dcEdgeList.addEdge(vertex, helper.getVertex());
+                            if(dcEdgeList.addEdge(vertex, helper.getVertex()) && greedy) return dcEdgeList;
                         }
                         helperMap.put(leftOfVertex, new VertexAndType(vertex, type));
                     }
@@ -237,21 +237,16 @@ public class TriangleDecomposition {
 
 
     public static DoublyConnectedEdgeList triangulateYMonotonePolygon(Polygon p) {
-
-        //get points in counter-clockwise order
-        Iterator<PVector> iter = p.ccwIterator();
-        ArrayList<PVector> points = new ArrayList<>();
-        assert iter != null;
-        while (iter.hasNext()) {
-            points.add(iter.next());
-        }
-
-        DoublyConnectedEdgeList dcEdgeList = new DoublyConnectedEdgeList(points);
+        DoublyConnectedEdgeList dcEdgeList = new DoublyConnectedEdgeList(p.points());
         triangulateYMonotonePolygon(dcEdgeList, dcEdgeList.getFaces().get(0));
         return dcEdgeList;
     }
 
     public static void triangulateYMonotonePolygon(DoublyConnectedEdgeList dcEdgeList, DCFace face){
+        triangulateYMonotonePolygon(dcEdgeList, face);
+    }
+
+    public static void triangulateYMonotonePolygon(DoublyConnectedEdgeList dcEdgeList, DCFace face, boolean greedy){
         //System.out.println("Triangulate face: " + face.toString());
         ArrayList<DCVertex> points = new ArrayList<>();
         DCHalfEdge refEdge = face.getRefEdge();
@@ -306,7 +301,7 @@ public class TriangleDecomposition {
                 while (!stack.empty()) {
                     int v = stack.pop();
                     if (!stack.empty()) {
-                        dcEdgeList.addEdge(points.get(uj), points.get(v));
+                        if(dcEdgeList.addEdge(points.get(uj), points.get(v)) && greedy) return;
                         System.out.println("Add edge");
                     }
                 }
@@ -316,7 +311,7 @@ public class TriangleDecomposition {
                 int v = stack.pop();
                 while (!stack.empty() && canSee(uj, v, stack.peek(), points, topVertexIdx, bottomVertexIdx)) {
                     v = stack.pop();
-                    dcEdgeList.addEdge(points.get(uj), points.get(v));
+                    if(dcEdgeList.addEdge(points.get(uj), points.get(v)) && greedy) return;
                     System.out.println("Add edge");
                 }
                 stack.push(v);
@@ -330,7 +325,7 @@ public class TriangleDecomposition {
         System.out.println("Stack: " + stack + " un:"+ un);
         stack.pop();
         while(stack.size() > 1){
-            dcEdgeList.addEdge(points.get(un), points.get(stack.pop()));
+            if(dcEdgeList.addEdge(points.get(un), points.get(stack.pop())) && greedy) return;
         }
     }
 

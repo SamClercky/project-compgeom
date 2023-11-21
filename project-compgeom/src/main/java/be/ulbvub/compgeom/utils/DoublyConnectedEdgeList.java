@@ -1,14 +1,13 @@
 package be.ulbvub.compgeom.utils;
 
 import be.ulbvub.compgeom.Polygon;
+import be.ulbvub.compgeom.triangles.TriangleDecomposition;
 import be.ulbvub.compgeom.ui.DrawContext;
 import be.ulbvub.compgeom.ui.Drawable;
 import processing.core.PConstants;
 import processing.core.PVector;
 
-import java.util.ArrayList;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
 
 public class DoublyConnectedEdgeList implements Drawable {
 
@@ -16,20 +15,34 @@ public class DoublyConnectedEdgeList implements Drawable {
     ArrayList<DCVertex> vertices = new ArrayList<DCVertex>();
     ArrayList<DCFace> faces = new ArrayList<DCFace>();
 
+
+    HashMap<DCVertex,DCFace> reflexVertices = new HashMap<>();
+
     public DoublyConnectedEdgeList(Polygon polygon) {
         this(polygon.points());
     }
 
+
+
     //take as argument a list of connected points
     public DoublyConnectedEdgeList(ArrayList<PVector> points) {
 
-        if (!points.isEmpty()) {
+        Polygon p = new Polygon(points);
+        //get points in counter-clockwise order
+        Iterator<PVector> iter = p.ccwIterator();
+        ArrayList<PVector> ccwPoints = new ArrayList<>();
+        assert iter != null;
+        while (iter.hasNext()) {
+            ccwPoints.add(iter.next());
+        }
+
+        if (!ccwPoints.isEmpty()) {
             DCFace face = new DCFace();
             faces.add(face);
             DCHalfEdge prevEdge = null;
             DCHalfEdge prevTwin = null;
 
-            for (PVector point : points) {
+            for (PVector point : ccwPoints) {
                 DCVertex currVertex = new DCVertex(point);
                 vertices.add(currVertex);
 
@@ -64,6 +77,15 @@ public class DoublyConnectedEdgeList implements Drawable {
             firstTwin.setNext(prevTwin);
 
             face.setRefEdge(firstEdge);
+        }
+
+        for(DCVertex vertex : vertices){
+            PVector prev = vertex.getLeavingEdge().getTwin().getNext().getDestination().getPoint();
+            PVector next = vertex.getLeavingEdge().getDestination().getPoint();
+            TurnDirection dir = TurnDirection.orientation(prev, vertex.getPoint(), next);
+            if(dir != TurnDirection.LEFT){//reflex angle
+                reflexVertices.put(vertex, vertex.getLeavingEdge().getFace());
+            }
         }
 
     }
@@ -177,7 +199,7 @@ public class DoublyConnectedEdgeList implements Drawable {
 
 
     //Add an edge between two vertices and update everything.
-    public void addEdge(DCVertex vertex1, DCVertex vertex2) {
+    public boolean addEdge(DCVertex vertex1, DCVertex vertex2) {
         /*
                 New face
           v1 -----topEdge----->
@@ -222,6 +244,48 @@ public class DoublyConnectedEdgeList implements Drawable {
         faces.add(newFace);
         edges.add(topEdge);
         edges.add(bottomEdge);
+
+
+        //update reflexVertices if needed
+
+        if(reflexVertices.get(vertex1) != null) {
+            PVector prev = getPrevEdgeOfFace(vertex1, newFace).getOrigin().getPoint();
+            PVector next = vertex2.getPoint();
+            TurnDirection dir = TurnDirection.orientation(prev, vertex1.getPoint(), next);
+            if (dir != TurnDirection.LEFT) {//reflex angle
+                reflexVertices.put(vertex1, newFace);
+            }else{
+                reflexVertices.remove(vertex1);
+            }
+            prev = vertex2.getPoint();
+            next = bottomEdge.getNext().getDestination().getPoint();
+            dir = TurnDirection.orientation(prev, vertex1.getPoint(), next);
+            if (dir != TurnDirection.LEFT) {//reflex angle
+                reflexVertices.put(vertex1, existingFace);
+            }else{
+                reflexVertices.remove(vertex1);
+            }
+        }
+
+        if(reflexVertices.get(vertex2) != null) {
+            PVector prev = vertex1.getPoint();
+            PVector next = topEdge.getNext().getDestination().getPoint();
+            TurnDirection dir = TurnDirection.orientation(prev, vertex2.getPoint(), next);
+            if (dir != TurnDirection.LEFT) {//reflex angle
+                reflexVertices.put(vertex2, newFace);
+            }else{
+                reflexVertices.remove(vertex2);
+            }
+            prev = getPrevEdgeOfFace(vertex2, existingFace).getOrigin().getPoint();
+            next = vertex1.getPoint();
+            dir = TurnDirection.orientation(prev, vertex2.getPoint(), next);
+            if (dir != TurnDirection.LEFT) {//reflex angle
+                reflexVertices.put(vertex2, existingFace);
+            }else{
+                reflexVertices.remove(vertex2);
+            }
+        }
+        return reflexVertices.isEmpty();
     }
 
     public void addEdge(int idxVertex1, int idxVertex2) {
@@ -286,5 +350,9 @@ public class DoublyConnectedEdgeList implements Drawable {
 
     public ArrayList<DCFace> getFaces() {
         return faces;
+    }
+
+    public boolean hasReflex(){
+        return !reflexVertices.isEmpty();
     }
 }
