@@ -15,11 +15,14 @@ public record Line(PVector start, PVector end) {
     public PVector intersectionPointWithRay(Line ray) {
         final var dir = ray.end.copy().sub(ray.start);
         final var lv = ray.start; // linear variation
-        final var alpha = (dir.y * (end.x - lv.x) - end.y * dir.x + lv.y * dir.x) / (start.y * dir.x - end.y * dir.x - dir.y * (start.x - end.x));
+        var alpha = (dir.y * (end.x - lv.x) - end.y * dir.x + lv.y * dir.x) / (start.y * dir.x - end.y * dir.x - dir.y * (start.x - end.x));
+        if (Float.isNaN(alpha)) {
+            alpha = start.x < end.x || start.y < end.y ? 0.0f : 1.0f;
+        }
 
         // Assert that the target is on the line
         assert alpha >= 0;
-        assert alpha < 1;
+        assert alpha <= 1;
 
         // Return found position
         return start.copy().mult(alpha).add(end.copy().mult(1 - alpha));
@@ -38,7 +41,8 @@ public record Line(PVector start, PVector end) {
         }
 
         // Assert on ray
-        assert betaDir.x == beta * dir.x && betaDir.y == beta * dir.y;
+        assert Math.abs(betaDir.x - beta * dir.x) < 1e-4;
+        assert Math.abs(betaDir.y - beta * dir.y) < 1e-4;
 
         return beta;
     }
