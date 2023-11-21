@@ -24,7 +24,7 @@ public class DecompositionConfigFrame extends JFrame {
         contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.PAGE_AXIS));
         contentPane.add(new JLabel("Decomposition configuration"));
 
-        final var algorithms = new String[]{"None selected", "Triangulation", "Slab decomposition", "Kd decomposition"};
+        final var algorithms = new String[]{"None selected", "Triangulation", "Greedy decomposition", "Slab decomposition", "Kd decomposition"};
         final var algorithmSelector = new JComboBox<>(algorithms);
         algorithmSelector.setSelectedIndex(0);
         contentPane.add(algorithmSelector);
@@ -32,6 +32,7 @@ public class DecompositionConfigFrame extends JFrame {
             config.removeAll();
             switch ((String) Objects.requireNonNull(algorithmSelector.getSelectedItem())) {
                 case "Triangulation" -> config.add(new TriangulationConfigPane());
+                case "Greedy decomposition" -> config.add(new GreedyConfigPane());
                 case "Slab decomposition" -> config.add(new SlabConfigPane());
                 case "Kd decomposition" -> config.add(new KdConfigPane());
                 default -> {
@@ -121,6 +122,13 @@ public class DecompositionConfigFrame extends JFrame {
         @Override
         public DecompositionConfig config(Polygon polygon) {
             return new DecompositionConfig.KdConfig(polygon);
+        }
+    }
+
+    private static class GreedyConfigPane extends ConfigPanel {
+        @Override
+        public DecompositionConfig config(Polygon polygon) {
+            return new DecompositionConfig.GreedyConfig(polygon);
         }
     }
 }

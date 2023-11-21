@@ -79,6 +79,17 @@ public class MainScreen extends PApplet {
                                 "Decomposition failed",
                                 JOptionPane.ERROR_MESSAGE);
                     }
+                } else if (config instanceof DecompositionConfig.GreedyConfig c) {
+                    if (c.polygon().points().size() > 3) {
+                        dcel = TriangleDecomposition.decompose(((DecompositionConfig.GreedyConfig) config).polygon(), true);
+                        JOptionPane.showMessageDialog(frame, "Decomposition complete");
+                    } else {
+                        JOptionPane.showMessageDialog(
+                                frame,
+                                "Not enough vertices to successfully do a decomposition",
+                                "Decomposition failed",
+                                JOptionPane.ERROR_MESSAGE);
+                    }
                 } else if (config instanceof DecompositionConfig.SlabConfig c) {
                     if (c.polygon().points().size() > 3) {
                         final var algorithm = new SlabDecomposition(c.direction(), c.polygon());
