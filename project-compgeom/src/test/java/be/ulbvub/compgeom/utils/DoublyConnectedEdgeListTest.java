@@ -76,13 +76,13 @@ class DoublyConnectedEdgeListTest {
         assertFalse(triangleIter.hasNext());
 
         final var rotatedSquareIter = rotatedSquare.getFaces().get(0).ccwIteratorEdge();
-        assertEdge(new PVector(1, 0.5f), rotatedSquareIter.next());
-        assertTrue(rotatedSquareIter.hasNext());
-        assertEdge(new PVector(0.5f, 0), rotatedSquareIter.next());
-        assertTrue(rotatedSquareIter.hasNext());
         assertEdge(new PVector(0, 0.5f), rotatedSquareIter.next());
         assertTrue(rotatedSquareIter.hasNext());
         assertEdge(new PVector(0.5f, 1), rotatedSquareIter.next());
+        assertTrue(rotatedSquareIter.hasNext());
+        assertEdge(new PVector(1, 0.5f), rotatedSquareIter.next());
+        assertTrue(rotatedSquareIter.hasNext());
+        assertEdge(new PVector(0.5f, 0), rotatedSquareIter.next());
         assertFalse(rotatedSquareIter.hasNext());
     }
 
