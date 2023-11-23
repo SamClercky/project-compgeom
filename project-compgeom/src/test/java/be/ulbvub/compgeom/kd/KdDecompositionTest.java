@@ -113,9 +113,9 @@ class KdDecompositionTest extends DecompositionTest {
 
         // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
         assertValidDecomposition(polygon, result);
-        assertEquals(19, result.getVertices().size());
-        assertEquals(15, result.getFaces().size());
-        assertEquals(66, result.getEdges().size());
+        assertEquals(46, result.getVertices().size());
+        assertEquals(17, result.getFaces().size());
+        assertEquals(124, result.getEdges().size());
     }
 
     @Test
@@ -128,8 +128,8 @@ class KdDecompositionTest extends DecompositionTest {
 
         // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
         assertValidDecomposition(polygon, result);
-        assertEquals(19, result.getVertices().size());
-        assertEquals(15, result.getFaces().size());
-        assertEquals(66, result.getEdges().size());
+        assertEquals(52, result.getVertices().size());
+        assertEquals(17, result.getFaces().size());
+        assertEquals(136, result.getEdges().size());
     }
 }

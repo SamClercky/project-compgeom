@@ -220,11 +220,24 @@ public class DCFace {
             final var curr = currWindow.get(1);
             final var next = currWindow.get(2);
 
-            if (TurnDirection.orientation(prev.getOrigin(), curr.getOrigin(), next.getOrigin()) == TurnDirection.RIGHT) {
+            // Add some margin, as otherwise some false negatives
+            if (TurnDirection.orientationRaw(prev.getOrigin(), curr.getOrigin(), next.getOrigin()) > 0.005) {
                 return false;
             }
         }
 
         return true;
+    }
+
+    @Override
+    public String toString() {
+        final var result = new StringBuilder("Face {");
+        var iter = ccwIteratorVertex();
+        while (iter.hasNext()) {
+            final var vertex = iter.next();
+            result.append("(").append(vertex.getPoint().x).append(", ").append(vertex.getPoint().y).append(")");
+        }
+
+        return result.toString();
     }
 }

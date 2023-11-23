@@ -2,11 +2,9 @@ package be.ulbvub.compgeom.slab;
 
 import be.ulbvub.compgeom.DecompositionTest;
 import be.ulbvub.compgeom.utils.Event;
-import be.ulbvub.compgeom.utils.PolygonReader;
 import org.junit.jupiter.api.Test;
 import processing.core.PVector;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
 
@@ -44,17 +42,14 @@ class SlabDecompositionTest extends DecompositionTest {
         final var queue = decomposition.getQueue();
 
         assertEventEquals(new PVector(0, .5f), EventTypes.Start, Objects.requireNonNull(queue.poll()));
-        assertEventEquals(new PVector(.5f, 0), EventTypes.NormalPoint, Objects.requireNonNull(queue.poll()));
         assertEventEquals(new PVector(.5f, 1), EventTypes.NormalPoint, Objects.requireNonNull(queue.poll()));
+        assertEventEquals(new PVector(.5f, 0), EventTypes.NormalPoint, Objects.requireNonNull(queue.poll()));
         assertEventEquals(new PVector(1, .5f), EventTypes.End, Objects.requireNonNull(queue.poll()));
     }
 
     @Test
     void buildEventQueueIdents() throws IOException {
-        final var polygonResource = getClass().getClassLoader().getResource("indented.poly").getFile();
-        final var reader = new PolygonReader();
-        reader.readFile(new File(polygonResource));
-        final var polygon = reader.getPolygon();
+        final var polygon = readPolygon("indented.poly");
 
         final var decomposition = new SlabDecomposition(new PVector(0, 1), polygon);
         decomposition.buildEventQueue();
@@ -70,10 +65,7 @@ class SlabDecompositionTest extends DecompositionTest {
 
     @Test
     void buildEventQueueIdentsHorizontal() throws IOException {
-        final var polygonResource = getClass().getClassLoader().getResource("indented-horizontal.poly").getFile();
-        final var reader = new PolygonReader();
-        reader.readFile(new File(polygonResource));
-        final var polygon = reader.getPolygon();
+        final var polygon = readPolygon("indented-horizontal.poly");
 
         final var decomposition = new SlabDecomposition(new PVector(0, 1), polygon);
         decomposition.buildEventQueue();
@@ -125,10 +117,7 @@ class SlabDecompositionTest extends DecompositionTest {
 
     @Test
     void decomposeIdents() throws IOException {
-        final var polygonResource = getClass().getClassLoader().getResource("indented.poly").getFile();
-        final var reader = new PolygonReader();
-        reader.readFile(new File(polygonResource));
-        final var polygon = reader.getPolygon();
+        final var polygon = readPolygon("indented.poly");
 
         final var decomposition = new SlabDecomposition(new PVector(0, 1), polygon);
         decomposition.buildEventQueue();
@@ -144,10 +133,23 @@ class SlabDecompositionTest extends DecompositionTest {
 
     @Test
     void decomposeIdentsHorizontal() throws IOException {
-        final var polygonResource = getClass().getClassLoader().getResource("indented-horizontal.poly").getFile();
-        final var reader = new PolygonReader();
-        reader.readFile(new File(polygonResource));
-        final var polygon = reader.getPolygon();
+        final var polygon = readPolygon("indented-horizontal.poly");
+
+        final var decomposition = new SlabDecomposition(new PVector(0, 1), polygon);
+        decomposition.buildEventQueue();
+        decomposition.run();
+        final var result = decomposition.getDecomposition();
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertValidDecomposition(polygon, result);
+        assertEquals(8, result.getVertices().size());
+        assertEquals(3, result.getFaces().size());
+        assertEquals(20, result.getEdges().size());
+    }
+
+    @Test
+    void decomposeIdentsSkewed() throws IOException {
+        final var polygon = readPolygon("indented-skewed.poly");
 
         final var decomposition = new SlabDecomposition(new PVector(0, 1), polygon);
         decomposition.buildEventQueue();
@@ -162,11 +164,24 @@ class SlabDecompositionTest extends DecompositionTest {
     }
 
     @Test
-    void decomposeIdentsSkewed() throws IOException {
-        final var polygonResource = getClass().getClassLoader().getResource("indented-skewed.poly").getFile();
-        final var reader = new PolygonReader();
-        reader.readFile(new File(polygonResource));
-        final var polygon = reader.getPolygon();
+    void decomposeCurl() throws IOException {
+        final var polygon = readPolygon("curl.poly");
+
+        final var decomposition = new SlabDecomposition(new PVector(0, 1), polygon);
+        decomposition.buildEventQueue();
+        decomposition.run();
+        final var result = decomposition.getDecomposition();
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertEquals(8, result.getVertices().size());
+        assertEquals(3, result.getFaces().size());
+        assertEquals(20, result.getEdges().size());
+        assertValidDecomposition(polygon, result);
+    }
+
+    @Test
+    void decomposeCurlInv() throws IOException {
+        final var polygon = readPolygon("curl-inverted.poly");
 
         final var decomposition = new SlabDecomposition(new PVector(0, 1), polygon);
         decomposition.buildEventQueue();

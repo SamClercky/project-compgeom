@@ -4,8 +4,8 @@ import be.ulbvub.compgeom.Polygon;
 import be.ulbvub.compgeom.utils.*;
 import processing.core.PVector;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Stack;
 
 public class KdDecomposition {
 
@@ -44,7 +44,7 @@ public class KdDecomposition {
     }
 
     public void run() {
-        final var agenda = new Stack<KdRange>();
+        final var agenda = new ArrayDeque<KdRange>();
         agenda.push(new KdRange(0, xReflex.size(), 0, yReflex.size(), true));
 
         while (!agenda.isEmpty()) {
@@ -95,23 +95,28 @@ public class KdDecomposition {
 
         final var outgoingEdgeIterator = reflexPoint.iterateOutgoingEdges();
         while (outgoingEdgeIterator.hasNext()) {
-            final var nextFace = outgoingEdgeIterator.next().getFace();
+            final var outgoingEdge = outgoingEdgeIterator.next();
+            final var nextFace = outgoingEdge.getFace();
             if (nextFace == null) continue;
 
+            // Get FOV from reflex, so we do not go outside
+            var prev = outgoingEdge.getPrev().getOrigin().getPoint();
+            var next = outgoingEdge.getNext().getOrigin().getPoint();
+
+            assert outgoingEdge.getOrigin().getPoint().equals(reflexPoint.getPoint());
+
             final var faceIterator = nextFace.iterateForwardEdges();
-            PVector lastVisibleVertex = null;
             while (faceIterator.hasNext()) {
                 final var nextEdge = faceIterator.next();
                 final var nextLine = nextEdge.toLine();
 
-                lastVisibleVertex = lastVisibleVertex == null ? nextEdge.getOrigin().getPoint() : lastVisibleVertex;
-                if (TurnDirection.orientation(reflexPoint.getPoint(), lastVisibleVertex, nextEdge.getOrigin().getPoint()) != TurnDirection.RIGHT) {
-                    lastVisibleVertex = nextEdge.getOrigin().getPoint();
+                if (nextLine.intersectRay(ray)) {
+                    final var intersectionPoint = nextLine.intersectionPointWithRay(ray);
+                    final var beta = ray.pointOnRay(intersectionPoint);
 
-                    if (nextLine.intersectRay(ray)) {
-                        final var intersectionPoint = nextLine.intersectionPointWithRay(ray);
-                        final var beta = ray.pointOnRay(intersectionPoint);
-
+                    var orient1 = TurnDirection.orientationRaw(prev, reflexPoint.getPoint(), intersectionPoint);
+                    var orient2 = TurnDirection.orientationRaw(reflexPoint.getPoint(), next, intersectionPoint);
+                    if (orient1 <= 0 || orient2 <= 0) {
                         if (beta < 0 && beta > minLowerBeta) {
                             // lower edge found
                             minLowerEdge = nextEdge;
@@ -125,6 +130,8 @@ public class KdDecomposition {
                 }
             }
         }
+
+        assert !(minLowerEdge == null && minUpperEdge == null); // something went wrong if both are null
 
         // Ok we have found here now possibly an upper and a lower edge -> connect
         if (minUpperEdge != null) {
