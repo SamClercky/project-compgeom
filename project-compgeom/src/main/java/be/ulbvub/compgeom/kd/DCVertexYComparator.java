@@ -1,12 +1,10 @@
 package be.ulbvub.compgeom.kd;
 
-import be.ulbvub.compgeom.utils.DCVertex;
-
 import java.util.Comparator;
 
-public class DCVertexYComparator implements Comparator<DCVertex> {
+public class DCVertexYComparator implements Comparator<KdVertex> {
     @Override
-    public int compare(DCVertex o1, DCVertex o2) {
-        return Float.compare(o1.getPoint().y, o2.getPoint().y);
+    public int compare(KdVertex o1, KdVertex o2) {
+        return Float.compare(o1.vertex().getPoint().y, o2.vertex().getPoint().y);
     }
 }

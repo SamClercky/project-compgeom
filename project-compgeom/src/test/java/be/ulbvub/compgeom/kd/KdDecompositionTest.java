@@ -1,49 +1,13 @@
 package be.ulbvub.compgeom.kd;
 
-import be.ulbvub.compgeom.Polygon;
-import be.ulbvub.compgeom.utils.PolygonReader;
-import org.junit.jupiter.api.BeforeEach;
+import be.ulbvub.compgeom.DecompositionTest;
 import org.junit.jupiter.api.Test;
-import processing.core.PVector;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class KdDecompositionTest {
-
-    Polygon square;
-    Polygon triangle;
-    Polygon rotatedSquare;
-
-    @BeforeEach
-    void setUp() {
-        square = new Polygon(new ArrayList<>() {
-            {
-                add(new PVector(0, 0));
-                add(new PVector(1, 0));
-                add(new PVector(1, 1));
-                add(new PVector(0, 1));
-            }
-        });
-        triangle = new Polygon(new ArrayList<>() {
-            {
-                add(new PVector(0, 0));
-                add(new PVector(0.5f, 1));
-                add(new PVector(1, 0));
-            }
-        });
-        rotatedSquare = new Polygon(new ArrayList<>() {
-            {
-                add(new PVector(1, 0.5f));
-                add(new PVector(0.5f, 0));
-                add(new PVector(0, 0.5f));
-                add(new PVector(0.5f, 1));
-            }
-        });
-    }
+class KdDecompositionTest extends DecompositionTest {
 
     @Test
     void decomposeIdemPotent() {
@@ -55,6 +19,7 @@ class KdDecompositionTest {
         assertEquals(4, squareResult.getVertices().size());
         assertEquals(1, squareResult.getFaces().size());
         assertEquals(8, squareResult.getEdges().size());
+        assertValidDecomposition(square, squareResult);
 
         final var decomposeTriangle = new KdDecomposition(triangle);
         decomposeTriangle.run();
@@ -64,6 +29,7 @@ class KdDecompositionTest {
         assertEquals(3, triangleResult.getVertices().size());
         assertEquals(1, triangleResult.getFaces().size());
         assertEquals(6, triangleResult.getEdges().size());
+        assertValidDecomposition(triangle, triangleResult);
 
         final var decomposeSquareRotated = new KdDecomposition(square);
         decomposeSquareRotated.run();
@@ -73,72 +39,95 @@ class KdDecompositionTest {
         assertEquals(4, rotatedSquareResult.getVertices().size());
         assertEquals(1, rotatedSquareResult.getFaces().size());
         assertEquals(8, rotatedSquareResult.getEdges().size());
+        assertValidDecomposition(rotatedSquare, rotatedSquareResult);
     }
 
     // TESTS ARE WRONG -> DUPLICATE POINTS WRONGLY COUNTED
     @Test
     void decomposeIdents() throws IOException {
-        final var polygonResource = getClass().getClassLoader().getResource("indented.poly").getFile();
-        final var reader = new PolygonReader();
-        reader.readFile(new File(polygonResource));
-        final var polygon = reader.getPolygon();
+        final var polygon = readPolygon("indented.poly");
 
         final var decomposition = new KdDecomposition(polygon);
         decomposition.run();
         final var result = decomposition.getDecomposition();
 
         // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
-        assertEquals(12, result.getVertices().size());
-        assertEquals(7, result.getFaces().size());
-        assertEquals(18*2, result.getEdges().size());
+        assertValidDecomposition(polygon, result);
+        assertEquals(8, result.getVertices().size());
+        assertEquals(3, result.getFaces().size());
+        assertEquals(10 * 2, result.getEdges().size());
     }
 
     @Test
     void decomposeIdentsHorizontal() throws IOException {
-        final var polygonResource = getClass().getClassLoader().getResource("indented-horizontal.poly").getFile();
-        final var reader = new PolygonReader();
-        reader.readFile(new File(polygonResource));
-        final var polygon = reader.getPolygon();
+        final var polygon = readPolygon("indented-horizontal.poly");
 
         final var decomposition = new KdDecomposition(polygon);
         decomposition.run();
         final var result = decomposition.getDecomposition();
 
         // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
-        assertEquals(12, result.getVertices().size());
-        assertEquals(7, result.getFaces().size());
-        assertEquals(18*2, result.getEdges().size());
+        assertValidDecomposition(polygon, result);
+        assertEquals(9, result.getVertices().size());
+        assertEquals(4, result.getFaces().size());
+        assertEquals(12 * 2, result.getEdges().size());
     }
 
     @Test
     void decomposeIdentsSkewed() throws IOException {
-        final var polygonResource = getClass().getClassLoader().getResource("indented-skewed.poly").getFile();
-        final var reader = new PolygonReader();
-        reader.readFile(new File(polygonResource));
-        final var polygon = reader.getPolygon();
+        final var polygon = readPolygon("indented-skewed.poly");
 
         final var decomposition = new KdDecomposition(polygon);
         decomposition.run();
         final var result = decomposition.getDecomposition();
 
         // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
-        assertEquals(12, result.getVertices().size());
-        assertEquals(7, result.getFaces().size());
-        assertEquals(18*2, result.getEdges().size());
+        assertValidDecomposition(polygon, result);
+        assertEquals(8, result.getVertices().size());
+        assertEquals(3, result.getFaces().size());
+        assertEquals(10 * 2, result.getEdges().size());
     }
 
     @Test
     void decomposeInternalSplitJoin() throws IOException {
-        final var polygonResource = getClass().getClassLoader().getResource("internal-split-join.poly").getFile();
-        final var reader = new PolygonReader();
-        reader.readFile(new File(polygonResource));
-        final var polygon = reader.getPolygon();
+        final var polygon = readPolygon("internal-split-join.poly");
 
         final var decomposition = new KdDecomposition(polygon);
         decomposition.run();
         final var result = decomposition.getDecomposition();
 
         // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertValidDecomposition(polygon, result);
+        assertEquals(14, result.getVertices().size());
+        assertEquals(5, result.getFaces().size());
+        assertEquals(36, result.getEdges().size());
+    }
+
+    @Test
+    void decomposeCurl() throws IOException {
+        final var polygon = readPolygon("curl.poly");
+
+        final var decomposition = new KdDecomposition(polygon);
+        decomposition.run();
+        final var result = decomposition.getDecomposition();
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertValidDecomposition(polygon, result);
+        assertEquals(19, result.getVertices().size());
+        assertEquals(15, result.getFaces().size());
+        assertEquals(66, result.getEdges().size());
+    }
+
+    @Test
+    void decomposeCurlInv() throws IOException {
+        final var polygon = readPolygon("curl-inverted.poly");
+
+        final var decomposition = new KdDecomposition(polygon);
+        decomposition.run();
+        final var result = decomposition.getDecomposition();
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertValidDecomposition(polygon, result);
         assertEquals(19, result.getVertices().size());
         assertEquals(15, result.getFaces().size());
         assertEquals(66, result.getEdges().size());

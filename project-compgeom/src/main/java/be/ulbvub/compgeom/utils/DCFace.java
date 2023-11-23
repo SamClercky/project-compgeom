@@ -211,4 +211,20 @@ public class DCFace {
 
         throw new IllegalStateException();
     }
+
+    public boolean isConvex() {
+        final var iter = new SlidingIterator<>(3, ccwIteratorEdge());
+        while (iter.hasNext()) {
+            final var currWindow = iter.next();
+            final var prev = currWindow.get(0);
+            final var curr = currWindow.get(1);
+            final var next = currWindow.get(2);
+
+            if (TurnDirection.orientation(prev.getOrigin(), curr.getOrigin(), next.getOrigin()) == TurnDirection.RIGHT) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }

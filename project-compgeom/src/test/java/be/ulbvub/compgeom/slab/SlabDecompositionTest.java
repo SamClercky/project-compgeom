@@ -1,50 +1,18 @@
 package be.ulbvub.compgeom.slab;
 
-import be.ulbvub.compgeom.Polygon;
+import be.ulbvub.compgeom.DecompositionTest;
 import be.ulbvub.compgeom.utils.Event;
 import be.ulbvub.compgeom.utils.PolygonReader;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import processing.core.PVector;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class SlabDecompositionTest {
-    Polygon square;
-    Polygon triangle;
-    Polygon rotatedSquare;
-
-    @BeforeEach
-    void setUp() {
-        square = new Polygon(new ArrayList<>() {
-            {
-                add(new PVector(0, 0));
-                add(new PVector(1, 0));
-                add(new PVector(1, 1));
-                add(new PVector(0, 1));
-            }
-        });
-        triangle = new Polygon(new ArrayList<>() {
-            {
-                add(new PVector(0, 0));
-                add(new PVector(0.5f, 1));
-                add(new PVector(1, 0));
-            }
-        });
-        rotatedSquare = new Polygon(new ArrayList<>() {
-            {
-                add(new PVector(1, 0.5f));
-                add(new PVector(0.5f, 0));
-                add(new PVector(0, 0.5f));
-                add(new PVector(0.5f, 1));
-            }
-        });
-    }
+class SlabDecompositionTest extends DecompositionTest {
 
     @Test
     void buildEventQueueSquare() {
@@ -130,6 +98,7 @@ class SlabDecompositionTest {
         assertEquals(4, squareResult.getVertices().size());
         assertEquals(1, squareResult.getFaces().size());
         assertEquals(8, squareResult.getEdges().size());
+        assertValidDecomposition(square, squareResult);
 
         final var decomposeTriangle = new SlabDecomposition(new PVector(0, 1), triangle);
         decomposeTriangle.buildEventQueue();
@@ -140,6 +109,7 @@ class SlabDecompositionTest {
         assertEquals(3, triangleResult.getVertices().size());
         assertEquals(1, triangleResult.getFaces().size());
         assertEquals(6, triangleResult.getEdges().size());
+        assertValidDecomposition(triangle, triangleResult);
 
         final var decomposeSquareRotated = new SlabDecomposition(new PVector(0, 1), square);
         decomposeSquareRotated.buildEventQueue();
@@ -150,6 +120,7 @@ class SlabDecompositionTest {
         assertEquals(4, rotatedSquareResult.getVertices().size());
         assertEquals(1, rotatedSquareResult.getFaces().size());
         assertEquals(8, rotatedSquareResult.getEdges().size());
+        assertValidDecomposition(rotatedSquare, rotatedSquareResult);
     }
 
     @Test
@@ -168,6 +139,7 @@ class SlabDecompositionTest {
         assertEquals(8, result.getVertices().size());
         assertEquals(3, result.getFaces().size());
         assertEquals(20, result.getEdges().size());
+        assertValidDecomposition(polygon, result);
     }
 
     @Test
@@ -186,6 +158,7 @@ class SlabDecompositionTest {
         assertEquals(8, result.getVertices().size());
         assertEquals(3, result.getFaces().size());
         assertEquals(20, result.getEdges().size());
+        assertValidDecomposition(polygon, result);
     }
 
     @Test
@@ -204,6 +177,7 @@ class SlabDecompositionTest {
         assertEquals(8, result.getVertices().size());
         assertEquals(3, result.getFaces().size());
         assertEquals(20, result.getEdges().size());
+        assertValidDecomposition(polygon, result);
     }
 
     void assertEventEquals(PVector expectedPoint, EventTypes expectedReason, Event<EventTypes> observed) {

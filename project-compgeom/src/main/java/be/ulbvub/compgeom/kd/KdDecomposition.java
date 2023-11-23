@@ -9,8 +9,8 @@ import java.util.Stack;
 
 public class KdDecomposition {
 
-    private final ArrayList<DCVertex> xReflex;
-    private final ArrayList<DCVertex> yReflex;
+    private final ArrayList<KdVertex> xReflex;
+    private final ArrayList<KdVertex> yReflex;
     private final DoublyConnectedEdgeList decomposition;
 
     public KdDecomposition(Polygon polygon) {
@@ -36,8 +36,9 @@ public class KdDecomposition {
 
             if (TurnDirection.orientation(prev.getOrigin(), current.getOrigin(), next.getOrigin()).equals(TurnDirection.RIGHT)) {
                 // We have detected a reflex point, add them to sorted trees
-                xReflex.add(current.getOrigin());
-                yReflex.add(current.getOrigin());
+                final var vertex = new KdVertex(current.getOrigin());
+                xReflex.add(vertex);
+                yReflex.add(vertex);
             }
         }
     }
@@ -55,9 +56,14 @@ public class KdDecomposition {
                 // X-axis
                 final var middleIndexX = range.middleIndexX();
                 final var middleReflex = xReflex.get(middleIndexX);
-                System.out.println("Reflex handled X: " + middleReflex.toString());
-                final var ray = new Line(middleReflex.getPoint(), middleReflex.getPoint().copy().add(new PVector(0, 1)));
-                insertEdge(middleReflex, ray);
+
+                if (middleReflex.hasNotBeenProcessed()) {
+                    System.out.println("Reflex handled X: " + middleReflex.toString());
+                    final var ray = new Line(middleReflex.vertex().getPoint(), middleReflex.vertex().getPoint().copy().add(new PVector(0, 1)));
+                    insertEdge(middleReflex.vertex(), ray);
+
+                    middleReflex.setProcessed();
+                }
 
                 agenda.push(new KdRange(range.xStart(), middleIndexX, range.yStart(), range.yEnd(), false));
                 agenda.push(new KdRange(middleIndexX + 1, range.xEnd(), range.yStart(), range.yEnd(), false));
@@ -65,9 +71,14 @@ public class KdDecomposition {
                 // Y-axis
                 final var middleIndexY = range.middleIndexY();
                 final var middleReflex = yReflex.get(middleIndexY);
-                System.out.println("Reflex handled Y: " + middleReflex.toString());
-                final var ray = new Line(middleReflex.getPoint(), middleReflex.getPoint().copy().add(new PVector(1, 0)));
-                insertEdge(middleReflex, ray);
+
+                if (middleReflex.hasNotBeenProcessed()) {
+                    System.out.println("Reflex handled Y: " + middleReflex.toString());
+                    final var ray = new Line(middleReflex.vertex().getPoint(), middleReflex.vertex().getPoint().copy().add(new PVector(1, 0)));
+                    insertEdge(middleReflex.vertex(), ray);
+
+                    middleReflex.setProcessed();
+                }
 
                 agenda.push(new KdRange(range.xStart(), range.xEnd(), range.yStart(), middleIndexY, true));
                 agenda.push(new KdRange(range.xStart(), range.xEnd(), middleIndexY + 1, range.yEnd(), true));
@@ -88,23 +99,29 @@ public class KdDecomposition {
             if (nextFace == null) continue;
 
             final var faceIterator = nextFace.iterateForwardEdges();
+            PVector lastVisibleVertex = null;
             while (faceIterator.hasNext()) {
                 final var nextEdge = faceIterator.next();
                 final var nextLine = nextEdge.toLine();
 
-                if (nextLine.intersectRay(ray)) {
-                    final var intersectionPoint = nextLine.intersectionPointWithRay(ray);
-                    final var beta = ray.pointOnRay(intersectionPoint);
+                lastVisibleVertex = lastVisibleVertex == null ? nextEdge.getOrigin().getPoint() : lastVisibleVertex;
+                if (TurnDirection.orientation(reflexPoint.getPoint(), lastVisibleVertex, nextEdge.getOrigin().getPoint()) != TurnDirection.RIGHT) {
+                    lastVisibleVertex = nextEdge.getOrigin().getPoint();
 
-                    if (beta < 0 && beta > minLowerBeta) {
-                        // lower edge found
-                        minLowerEdge = nextEdge;
-                        minLowerBeta = beta;
-                    } else if (beta > 0 && beta < minUpperBeta) {
-                        minUpperEdge = nextEdge;
-                        minUpperBeta = beta;
+                    if (nextLine.intersectRay(ray)) {
+                        final var intersectionPoint = nextLine.intersectionPointWithRay(ray);
+                        final var beta = ray.pointOnRay(intersectionPoint);
+
+                        if (beta < 0 && beta > minLowerBeta) {
+                            // lower edge found
+                            minLowerEdge = nextEdge;
+                            minLowerBeta = beta;
+                        } else if (beta > 0 && beta < minUpperBeta) {
+                            minUpperEdge = nextEdge;
+                            minUpperBeta = beta;
+                        }
+                        // else beta == 0 -> ignore as this is the current edge
                     }
-                    // else beta == 0 -> ignore as this is the current edge
                 }
             }
         }
