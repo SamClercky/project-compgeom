@@ -4,6 +4,7 @@ import be.ulbvub.compgeom.Polygon;
 import be.ulbvub.compgeom.utils.*;
 import processing.core.PVector;
 
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class SlabDecomposition {
@@ -94,10 +95,14 @@ public class SlabDecomposition {
                     }
                 }
                 case Split -> {
-                    emitReflex(event);
+                    final var toBeAdded = new ArrayList<Line>();
                     for (var iter = event.getVertex().iterateOutgoingEdges(); iter.hasNext(); ) {
-                        sweepLine.add(iter.next().toLine());
+                        toBeAdded.add(iter.next().toLine());
                     }
+                    emitReflex(event);
+
+                    // We can't just restart iterating as we have added a new line, which can confuse the algorithm
+                    sweepLine.addAll(toBeAdded);
                 }
                 case Join -> {
                     for (var iter = event.getVertex().iterateOutgoingEdges(); iter.hasNext(); ) {
@@ -108,7 +113,7 @@ public class SlabDecomposition {
                 case NormalPoint -> {
                     for (var iter = event.getVertex().iterateOutgoingEdges(); iter.hasNext(); ) {
                         final var edge = iter.next().toLine();
-                        if (edge.leftMost().x < event.getPoint().x) {
+                        if (edge.rightMost().x <= event.getPoint().x) {
                             // Remove edges that end in current event
                             sweepLine.remove(edge);
                         } else {
@@ -119,22 +124,21 @@ public class SlabDecomposition {
                 }
                 case ReflexPoint -> {
                     // Remove edges that end in current event
+                    final var toBeAdded = new ArrayList<Line>();
                     for (var iter = event.getVertex().iterateOutgoingEdges(); iter.hasNext(); ) {
                         final var edge = iter.next().toLine();
-                        if (edge.leftMost().x <= event.getPoint().x) {
+                        if (edge.rightMost().x <= event.getPoint().x) {
                             sweepLine.remove(edge);
+                        } else {
+                            toBeAdded.add(edge);
                         }
                     }
 
                     emitReflex(event);
 
                     // Edge that starts in current event, add to sweepLine
-                    for (var iter = event.getVertex().iterateIncomingEdges(); iter.hasNext(); ) {
-                        final var edge = iter.next().toLine();
-                        if (edge.rightMost().x > event.getPoint().x) {
-                            sweepLine.add(edge);
-                        }
-                    }
+                    // We can't just restart iterating as we have added a new line, which can confuse the algorithm
+                    sweepLine.addAll(toBeAdded);
                 }
                 default -> throw new IllegalStateException("Unexpected value: " + event.getReason());
             }
@@ -171,7 +175,11 @@ public class SlabDecomposition {
         DCHalfEdge halfEdge = null;
         for (var dEdge : decomposition.getEdges()) {
             final var dLine = dEdge.toLine();
-            if (dLine.rightMost().equals(edge.rightMost()) && TurnDirection.orientation(edge.start(), edge.end(), dLine.rightMost()) == TurnDirection.STRAIGHT) {
+//            if (dLine.rightMost().equals(edge.rightMost()) && TurnDirection.orientation(edge.start(), edge.end(), dLine.rightMost()) == TurnDirection.STRAIGHT) {
+//                halfEdge = dEdge;
+//                break;
+//            }
+            if (dLine.equals(edge)) {
                 halfEdge = dEdge;
                 break;
             }
@@ -184,8 +192,14 @@ public class SlabDecomposition {
             otherEndVertex = halfEdge.getOrigin();
         else if (halfEdge.getTwin().getOrigin().getPoint().equals(intersection))
             otherEndVertex = halfEdge.getTwin().getOrigin();
-        else
+        else {
             otherEndVertex = decomposition.addVertex(halfEdge, intersection);
+
+            // We just updated the DCEL, now we need to also update the sweep line to retrieve later
+            // the needed details
+            sweepLine.remove(edge);
+            sweepLine.add(new Line(intersection, edge.rightMost()));
+        }
 
         // Connect reflex point with above (steiner) point
         if (!otherEndVertex.getPoint().equals(event.getVertex().getPoint()))

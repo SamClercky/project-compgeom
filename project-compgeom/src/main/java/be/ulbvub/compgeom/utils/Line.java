@@ -2,7 +2,16 @@ package be.ulbvub.compgeom.utils;
 
 import processing.core.PVector;
 
-public record Line(PVector start, PVector end) {
+import java.util.Objects;
+
+public final class Line {
+    private PVector start;
+    private PVector end;
+
+    public Line(PVector start, PVector end) {
+        this.start = start;
+        this.end = end;
+    }
 
     public boolean intersectRay(Line ray) {
         return TurnDirection.orientationRaw(ray.start, ray.end, start) * TurnDirection.orientationRaw(ray.start, ray.end, end) <= 0;
@@ -77,12 +86,57 @@ public record Line(PVector start, PVector end) {
         return start.x <= end.x ? start : end;
     }
 
+    public void setLeftMost(PVector v) {
+        if (start.x <= end.x) {
+            start = v;
+        } else {
+            end = v;
+        }
+    }
+
     public PVector rightMost() {
         return start.x <= end.x ? end : start;
+    }
+
+    public void setRightMost(PVector v) {
+        if (start.x <= end.x) {
+            end = v;
+        } else {
+            start = v;
+        }
     }
 
     public Line rotate90() {
         //noinspection SuspiciousNameCombination
         return new Line(new PVector(start.y, start.x), new PVector(end.y, end.x));
     }
+
+    public PVector start() {
+        return start;
+    }
+
+    public PVector end() {
+        return end;
+    }
+
+    public void setStart(PVector start) {
+        this.start = start;
+    }
+
+    public void setEnd(PVector end) {
+        this.end = end;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(start, end);
+    }
+
+    @Override
+    public String toString() {
+        return "Line[" +
+                "start=" + start + ", " +
+                "end=" + end + ']';
+    }
+
 }
