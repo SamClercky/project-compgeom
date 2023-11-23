@@ -172,10 +172,12 @@ public class MainScreen extends PApplet {
                                 final var pos = ctx2.size().copy().sub(new PVector(260, 100));
 
                                 ctx2.applyTextStyle();
+                                final var mousePosition = ctx.region().toLocalPoint(ctx.mousePosition());
                                 applet.text("Number of vertices: " + polygonRegion.getPolygon().points().size() + "\n" +
                                                 "Number of faces in decomposition: " + (dcel != null ? dcel.getFaces().size() : 0) + "\n" +
                                                 "Number of vertices in decomposition: " + (dcel != null ? dcel.getVertices().size() : 0) + "\n" +
-                                                "Number of edges in decomposition: " + (dcel != null ? dcel.getEdges().size() : 0),
+                                                "Number of edges in decomposition: " + (dcel != null ? dcel.getEdges().size() : 0) + "\n" +
+                                                "X: " + mousePosition.x + ", Y: " + mousePosition.y,
                                         pos.x, pos.y);
                             });
                 });
