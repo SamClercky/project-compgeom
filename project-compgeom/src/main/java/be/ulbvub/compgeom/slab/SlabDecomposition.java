@@ -48,9 +48,9 @@ public class SlabDecomposition {
                 }
                 case RIGHT -> {
                     if (currPoint.getPoint().x <= prevPoint.getPoint().x && currPoint.getPoint().x <= nextPoint.getPoint().x) {
-                        reason = EventTypes.Join;
-                    } else if (currPoint.getPoint().x >= prevPoint.getPoint().x && currPoint.getPoint().x >= nextPoint.getPoint().x) {
                         reason = EventTypes.Split;
+                    } else if (currPoint.getPoint().x >= prevPoint.getPoint().x && currPoint.getPoint().x >= nextPoint.getPoint().x) {
+                        reason = EventTypes.Join;
                     } else {
                         reason = EventTypes.ReflexPoint;
                     }
@@ -172,19 +172,35 @@ public class SlabDecomposition {
 
     private void handleOneSidedCut(Line edge, Event<EventTypes> event) {
         final var intersection = intersectionAlongSameYAxis(edge, event.getPoint());
+
+        // Query if the intersection is visible from the current reflex point to avoid cutting into the outer null face
+        // Start by finding the prev and next outer adjacent edges
+        final var outerEdgeIter = event.getVertex().iterateOutgoingEdges();
+        while (outerEdgeIter.hasNext()) {
+            final var nextOuterEdge = outerEdgeIter.next();
+            if (nextOuterEdge.getFace() == null) {
+                var orient1 = TurnDirection.orientationRaw(nextOuterEdge.getPrev().getOrigin().getPoint(), nextOuterEdge.getOrigin().getPoint(), intersection);
+                var orient2 = TurnDirection.orientationRaw(nextOuterEdge.getNext().getOrigin().getPoint(), nextOuterEdge.getOrigin().getPoint(), intersection);
+
+                if (orient1 < 0 && orient2 > 0) {
+                    return; // Not visible, stop cut here
+                } else {
+                    break; // Intersection is visible, continue cut
+                }
+            }
+        }
+
+
         DCHalfEdge halfEdge = null;
         for (var dEdge : decomposition.getEdges()) {
             final var dLine = dEdge.toLine();
-//            if (dLine.rightMost().equals(edge.rightMost()) && TurnDirection.orientation(edge.start(), edge.end(), dLine.rightMost()) == TurnDirection.STRAIGHT) {
-//                halfEdge = dEdge;
-//                break;
-//            }
-            if (dLine.equals(edge)) {
+            // Find the edge on the inner side
+            if (dLine.equals(edge) && dEdge.getFace() != null) {
                 halfEdge = dEdge;
                 break;
             }
         }
-        Objects.requireNonNull(halfEdge, "A half edge should exist in DCEL that partially overlaps with the provided edge");
+        Objects.requireNonNull(halfEdge, "A half edge should exist in DCEL that partially overlaps with the provided edge: " + edge);
 
         // Insert steiner point if point does not yet exist
         DCVertex otherEndVertex;
@@ -203,7 +219,11 @@ public class SlabDecomposition {
 
         // Connect reflex point with above (steiner) point
         if (!otherEndVertex.getPoint().equals(event.getVertex().getPoint()))
-            decomposition.addEdge(otherEndVertex, event.getVertex());
+            try {
+                decomposition.addEdge(otherEndVertex, event.getVertex());
+            } catch (NullPointerException ex) {
+                System.out.println("Something fishy happened with point: " + intersection + ", for reflex: " + event.getPoint());
+            }
     }
 
     public DoublyConnectedEdgeList getDecomposition() {

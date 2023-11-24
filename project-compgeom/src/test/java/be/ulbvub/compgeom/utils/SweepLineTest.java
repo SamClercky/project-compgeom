@@ -71,6 +71,26 @@ class SweepLineTest {
     }
 
     @Test
+    void testXComparatorIndentHorizontal() {
+        var sweepline = SweepLine.fromDirection(new PVector(1, 0));
+        var higher = new Line(new PVector(343.0f, 448.58777f), new PVector(516.0f, 450.0f));
+        var lower = new Line(new PVector(343.0f, 241.70114f), new PVector(530.0f, 246.0f));
+        sweepline.add(higher);
+        sweepline.add(lower);
+
+        var reflexPoint = new Line(new PVector(413.0f, 328.0f), new PVector(414.0f, 328.0f));
+        var comparator = new SweepLine.XComparator();
+
+        assertEquals(-1, comparator.compare(reflexPoint, higher));
+        assertEquals(1, comparator.compare(higher, reflexPoint));
+        assertEquals(1, comparator.compare(reflexPoint, lower));
+        assertEquals(-1, comparator.compare(lower, reflexPoint));
+
+        assertEquals(higher, sweepline.higher(reflexPoint));
+        assertEquals(lower, sweepline.lower(reflexPoint));
+    }
+
+    @Test
     void testYComparator() {
         var direction = new PVector(0, 1);
         var sweepline = SweepLine.fromDirection(direction);

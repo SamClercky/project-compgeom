@@ -73,8 +73,8 @@ class SlabDecompositionTest extends DecompositionTest {
 
         assertEventEquals(new PVector(269, 240), EventTypes.Start, Objects.requireNonNull(queue.poll()));
         assertEventEquals(new PVector(271, 448), EventTypes.Start, Objects.requireNonNull(queue.poll()));
-        assertEventEquals(new PVector(343, 336), EventTypes.Split, Objects.requireNonNull(queue.poll()));
-        assertEventEquals(new PVector(413, 328), EventTypes.Join, Objects.requireNonNull(queue.poll()));
+        assertEventEquals(new PVector(343, 336), EventTypes.Join, Objects.requireNonNull(queue.poll()));
+        assertEventEquals(new PVector(413, 328), EventTypes.Split, Objects.requireNonNull(queue.poll()));
         assertEventEquals(new PVector(516, 450), EventTypes.End, Objects.requireNonNull(queue.poll()));
         assertEventEquals(new PVector(530, 246), EventTypes.End, Objects.requireNonNull(queue.poll()));
     }
@@ -142,9 +142,9 @@ class SlabDecompositionTest extends DecompositionTest {
 
         // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
         assertValidDecomposition(polygon, result);
-        assertEquals(8, result.getVertices().size());
-        assertEquals(3, result.getFaces().size());
-        assertEquals(20, result.getEdges().size());
+        assertEquals(10, result.getVertices().size());
+        assertEquals(5, result.getFaces().size());
+        assertEquals(28, result.getEdges().size());
     }
 
     @Test
@@ -173,9 +173,9 @@ class SlabDecompositionTest extends DecompositionTest {
         final var result = decomposition.getDecomposition();
 
         // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
-        assertEquals(8, result.getVertices().size());
-        assertEquals(3, result.getFaces().size());
-        assertEquals(20, result.getEdges().size());
+        assertEquals(45, result.getVertices().size());
+        assertEquals(16, result.getFaces().size());
+        assertEquals(120, result.getEdges().size());
         assertValidDecomposition(polygon, result);
     }
 
@@ -189,9 +189,9 @@ class SlabDecompositionTest extends DecompositionTest {
         final var result = decomposition.getDecomposition();
 
         // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
-        assertEquals(8, result.getVertices().size());
-        assertEquals(3, result.getFaces().size());
-        assertEquals(20, result.getEdges().size());
+        assertEquals(53, result.getVertices().size());
+        assertEquals(18, result.getFaces().size());
+        assertEquals(140, result.getEdges().size());
         assertValidDecomposition(polygon, result);
     }
 

@@ -7,7 +7,7 @@ import java.util.Comparator;
 import java.util.TreeSet;
 
 public class SweepLine extends TreeSet<Line> {
-    private static class XComparator implements Comparator<Line> {
+    public static class XComparator implements Comparator<Line> {
         @Override
         public int compare(Line a, Line b) {
             // we assume here to only deal with simple polygons, so never crossings.
@@ -19,36 +19,39 @@ public class SweepLine extends TreeSet<Line> {
 
             Line aLine; // Line with minimal point before minimal point bLine
             Line bLine;
+            int inverted = 1;
             if (a.leftMost().x <= b.leftMost().x) {
                 aLine = a;
                 bLine = b;
+                inverted = -1;
             } else {
                 aLine = b;
                 bLine = a;
+                inverted = 1;
             }
 
             switch (TurnDirection.orientation(bLine.rightMost(), bLine.leftMost(), aLine.rightMost())) {
                 case RIGHT -> {
-                    return 1;
+                    return 1 * inverted;
                 }
                 case LEFT -> {
-                    return -1;
+                    return -1 * inverted;
                 }
                 case STRAIGHT -> {
                     switch (TurnDirection.orientation(bLine.rightMost(), bLine.leftMost(), aLine.leftMost())) {
                         case RIGHT -> {
-                            return 1;
+                            return 1 * inverted;
                         }
                         case LEFT -> {
-                            return -1;
+                            return -1 * inverted;
                         }
                         case STRAIGHT -> {
                             if (aLine.leftMost().y < bLine.rightMost().y) {
-                                return -1;
+                                return -1 * inverted;
                             } else if (aLine.leftMost().y > bLine.rightMost().y) {
-                                return 1;
+                                return 1 * inverted;
                             } else {
-                                return -1;
+                                return -1 * inverted;
                             }
                         }
                     }
@@ -60,7 +63,7 @@ public class SweepLine extends TreeSet<Line> {
 
     }
 
-    private static class YComparator implements Comparator<Line> {
+    public static class YComparator implements Comparator<Line> {
         private final XComparator xComparator;
 
         public YComparator() {
@@ -73,7 +76,7 @@ public class SweepLine extends TreeSet<Line> {
         }
     }
 
-    private static class GenericComparator implements Comparator<Line> {
+    public static class GenericComparator implements Comparator<Line> {
         private final PMatrix2D matrix;
         private final XComparator xComparator;
 
