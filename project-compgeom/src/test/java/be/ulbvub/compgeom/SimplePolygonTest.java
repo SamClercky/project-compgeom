@@ -121,6 +121,14 @@ class SimplePolygonTest {
 	}
 
 	@Test
+	void given_2_intersecting_segments_then_get_intersection_returns_correct_coordinates() {
+		final PVector[] segmentA = new PVector[] {new PVector(0, 0), new PVector(3, 3)};
+		final PVector[] segmentB = new PVector[] {new PVector(0, 3), new PVector(3, 0)};
+
+		assertEquals(Optional.of(new PVector(1.5f, 1.5f)), SimplePolygon.getIntersection(segmentA, segmentB));
+	}
+
+	@Test
 	void intersection_test() {
 		final PVector p1 = new PVector(3, 11);
 		final PVector q1 = new PVector(6, 2);

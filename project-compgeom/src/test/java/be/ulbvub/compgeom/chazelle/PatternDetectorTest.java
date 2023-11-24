@@ -17,6 +17,8 @@ public class PatternDetectorTest {
 
 	private SimplePolygon bigNonConvexShape;
 
+	private SimplePolygon nonConvexRectangle;
+
 	@BeforeEach
 	void setup() {
 		//The (1, 1) point is a reflex point
@@ -71,8 +73,38 @@ public class PatternDetectorTest {
 				new PVector(14, 12),
 				new PVector(12, 5),
 				//Reflex point
-				new PVector(9, 7),
+				new PVector(9, 6),
 				new PVector(10, 1)
+		)));
+		this.nonConvexRectangle = new SimplePolygon(new ArrayList<>(Arrays.asList(
+				new PVector(0, 0),
+				new PVector(0, 7),
+				new PVector(8, 7),
+				//Notch
+				new PVector(9, 6),
+				new PVector(10, 7),
+				new PVector(14, 7),
+				//Notch
+				new PVector(15, 6),
+				new PVector(15, 7),
+				new PVector(21, 7),
+				//Notch
+				new PVector(21, 6),
+				new PVector(22, 7),
+				new PVector(26, 7),
+				new PVector(26, 0),
+				new PVector(19, 0),
+				//Notch
+				new PVector(18, 1),
+				new PVector(17, 0),
+				new PVector(10, 0),
+				//Notch
+				new PVector(9, 1),
+				new PVector(8, 0),
+				new PVector(3, 0),
+				//Notch
+				new PVector(3, 1),
+				new PVector(2, 0)
 		)));
 	}
 
@@ -82,10 +114,12 @@ public class PatternDetectorTest {
 		final var patternDetector = new PatternDetector(bigNonConvexShape);
 		patternDetector.detectPatterns();
 		System.out.println("Data:");
-
-		for(final PatternDetector.PatternData data : patternDetector.getPatternData()) {
-			System.out.println(data.toString());
-		}
+		patternDetector.displaySegments();
+		/*System.out.println(new NotchFinder(nonConvexRectangle).findNotches().getNotches());
+		final var patternDetector = new PatternDetector(nonConvexRectangle);
+		patternDetector.detectPatterns();
+		System.out.println("Data:");
+		patternDetector.displaySegments();*/
 	}
 
 }
