@@ -10,17 +10,14 @@ import java.util.Objects;
 public class SlabDecomposition {
     private final SweepLine sweepLine;
     private final EventQueue<EventTypes, Event<EventTypes>> queue;
-    private final PVector direction;
     private final DoublyConnectedEdgeList decomposition;
     private final float theta;
 
     public SlabDecomposition(PVector direction, Polygon polygon) {
-        @SuppressWarnings("SuspiciousNameCombination") final var orthogonalDirection = new PVector(direction.y, direction.x).normalize();
         this.theta = PVector.angleBetween(new PVector(0, 1), direction);
 
         this.sweepLine = SweepLine.fromDirection(new PVector(1, 0));
         this.queue = EventQueue.fromDirection(new PVector(1, 0));
-        this.direction = direction.normalize();
 
         // Transform all points, before consuming them in the DCEL
         for (var point : polygon.points()) {
@@ -154,7 +151,7 @@ public class SlabDecomposition {
     }
 
     private void emitReflex(Event<EventTypes> event) {
-        @SuppressWarnings("SuspiciousNameCombination") final var reflexPoint = new Line(event.getPoint(), event.getPoint().copy().add(new PVector(direction.y, direction.x)));
+        final var reflexPoint = new Line(event.getPoint(), event.getPoint().copy().add(new PVector(1, 0)));
 
         final var edgeAbove = sweepLine.higher(reflexPoint);
         final var edgeBelow = sweepLine.lower(reflexPoint);
