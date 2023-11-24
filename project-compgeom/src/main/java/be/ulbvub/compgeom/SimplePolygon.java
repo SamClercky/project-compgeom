@@ -206,6 +206,10 @@ public record SimplePolygon(List<PVector> points) {
 		return isAtoBInside(a, b) && isAtoBInside(b, a);
 	}
 
+	public boolean isInside(final PVector[] segment) {
+		return isInside(segment[0], segment[1]);
+	}
+
 	@Override
 	public SimplePolygon clone() {
 		return new SimplePolygon(points.stream().map(PVector::copy).collect(Collectors.toCollection(LinkedList::new)));
@@ -298,6 +302,46 @@ public record SimplePolygon(List<PVector> points) {
 		}
 
 		return false;
+	}
+
+	public static Optional<PVector> getIntersection(final PVector[] l, final PVector[] s) {
+		if(!doIntersect(l[0], l[1], s[0], s[1])) {
+			return Optional.empty();
+		}
+		if(l[0] == s[0]) {
+			return Optional.of(l[0]);
+		}
+		if(l[0] == s[1]) {
+			return Optional.of(l[0]);
+		}
+		if(l[1] == s[0]) {
+			return Optional.of(l[1]);
+		}
+		if(l[1] == s[1]) {
+			return Optional.of(l[1]);
+		}
+		//Special case: one of the edges is vertical (i.e. x = constant. no y)
+		final float lSlope = (l[1].y - l[0].y) / (l[1].x - l[0].x);
+		final float sSlope = (s[1].y - s[0].y) / (s[1].x - s[0].x);
+		final float lOriginY = l[0].y - (lSlope * l[0].x);
+		final float sOriginY = s[0].y - (sSlope * s[0].x);
+		//Compute x coordinate of intersection:
+		float x = (sOriginY - lOriginY) / (lSlope - sSlope);
+		//Compute y coordinate of intersection:
+		float y = lSlope * x + lOriginY;
+
+		if(l[0].x == l[1].x) {
+			//i.e l is vertical -> x-coordinate of intersection is x of l
+			y = sSlope * l[0].x + sOriginY;
+			x = l[0].x;
+		}
+		if(s[0].x == s[1].x) {
+			//i.e s is vertical -> x-coordinate of intersection is x of s
+			y = lSlope * s[0].x + lOriginY;
+			x = s[0].x;
+		}
+
+		return Optional.of(new PVector(x, y));
 	}
 
 }
