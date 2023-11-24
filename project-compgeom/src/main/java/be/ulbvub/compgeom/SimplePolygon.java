@@ -104,8 +104,8 @@ public record SimplePolygon(List<PVector> points) {
 		for (final PVector u : points) {
 			final int uIndex = points.indexOf(u);
 
-			//Do not choose a vertex incident to the given notch or equal to the notch
-			if(getNext(uIndex).equals(notch) || getPrevious(uIndex).equals(notch) || u.equals(notch)) {
+			//Do not choose a vertex incident to the given notch or equal to the notch nor an edge not fully inside
+			if(getNext(uIndex).equals(notch) || getPrevious(uIndex).equals(notch) || u.equals(notch) || !isInside(notch, u)) {
 				continue;
 			}
 			final SimplePolygon subPolygonA = clone();
@@ -199,11 +199,13 @@ public record SimplePolygon(List<PVector> points) {
 		if(exists(a, b)) {
 			return true;
 		}
-		if(!(points.contains(a) && points.contains(b))) {
+		if(points.contains(a) && points.contains(b)) {
+			return isAtoBInside(a, b) && isAtoBInside(b, a);
+		} else if() {
+
+		} else {
 			throw new IllegalArgumentException("Both endpoints must be points of this polygon's instance");
 		}
-
-		return isAtoBInside(a, b) && isAtoBInside(b, a);
 	}
 
 	public boolean isInside(final PVector[] segment) {
@@ -250,12 +252,38 @@ public record SimplePolygon(List<PVector> points) {
 	}
 
 	/**
+	 * Get the turn direction from l to s, using the common point as the angle point.
+	 *
+	 * @param l the first edge
+	 * @param s the second edge
+	 *
+	 * @return a positive value for a left turn, a negative value for a right turn and 0 otherwise
+	 */
+	public static int getTurnDirection(final PVector[] l, final PVector[] s) {
+		if(l[0] == s[0]) {
+			return getTurnDirection(l[1], l[0], s[1]);
+		}
+		if(l[0] == s[1]) {
+			return getTurnDirection(l[1], l[0], s[0]);
+		}
+		if(l[1] == s[0]) {
+			return getTurnDirection(l[0], l[1], s[1]);
+		}
+		if(l[1] == s[1]) {
+			return getTurnDirection(l[0], l[1], s[0]);
+		}
+
+		throw new IllegalArgumentException("l and s must share exactly one common vertex");
+	}
+
+	/**
 	 * Get the turn direction (left or right). The method assumes the vertices are considered in clockwise order, i.e.
 	 * a left turn indicates a reflex point.
 	 *
 	 * @param a the first point
 	 * @param b the second point (the angle point)
 	 * @param c the third point
+	 *
 	 * @return a positive value for a left turn, a negative value for a right turn and 0 otherwise
 	 */
 	public static int getTurnDirection(final PVector a, final PVector b, final PVector c) {

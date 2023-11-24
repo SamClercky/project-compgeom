@@ -4,6 +4,7 @@ import be.ulbvub.compgeom.SimplePolygon;
 import processing.core.PVector;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class PatternDetector {
 
@@ -13,17 +14,15 @@ public class PatternDetector {
 
 	private final int nP;
 
-	//Contains the l' and r' data of each i - j notch, where i = first index (row) and j = second index (column).
-	//private final PatternData[][] segmentMatrix;
-
 	//Link each segment to a boolean value set to true if the entirety of this segment is inside P
-	private final Map<PVector[], Boolean> segmentPrimes = new HashMap<>();
+	//private final Map<PVector[], Boolean> segmentPrimes = new HashMap<>();
+	private final ArrayList<SegmentData> leftSegments = new ArrayList<>();
+
+	private final ArrayList<SegmentData> rightSegments = new ArrayList<>();
 
 	private final List<IntersectionData> intersections = new ArrayList<>();
 
 	private final Set<Pattern> xkPatterns = new HashSet<>();
-
-	//private final List<PatternData> dataList = new ArrayList<>();
 
 	public PatternDetector(final SimplePolygon polygon) {
 		this.polygon = polygon;
@@ -31,22 +30,30 @@ public class PatternDetector {
 		this.nP = notches.size();
 	}
 
-	private PVector[] makeR_ij(final PVector v_i, final PVector v_j) {
+	/**
+	 * Compute the right segment from a point to another. from is typically i and to, j.
+	 *
+	 * @param from the vertex from which the segment is computed
+	 * @param to the vertex to which the segment is computed
+	 *
+	 * @return the right segment (r_ij) or an empty optional if no notch exist between i and j
+	 */
+	private Optional<PVector[]> makeRight(final PVector from, final PVector to) {
 		boolean inRange = false;
 		PVector bestT = null;
 		double bestAngle = -1;
 
 		for(final PVector t : notches) {
 			//Check whether the notches are between a and b
-			boolean equal = t.equals(v_i) || t.equals(v_j);
+			boolean equal = t.equals(from) || t.equals(to);
 
 			if(equal) {
 				inRange = !inRange;
 			}
 			//Only consider the notches between a and b and ignore a and b
 			if(inRange && !equal) {
-				double angle = SimplePolygon.orientedAngle(t, v_i, v_j);
-				final int orientation = SimplePolygon.getTurnDirection(t, v_i, v_j);
+				double angle = SimplePolygon.orientedAngle(t, from, to);
+				final int orientation = SimplePolygon.getTurnDirection(t, from, to);
 
 				if(orientation != 0) {
 					angle *= orientation;
@@ -58,28 +65,36 @@ public class PatternDetector {
 			}
 		}
 		if(bestT == null) {
-			return new PVector[] {v_i, v_j};
+			return Optional.empty();
 		}
 
-		return new PVector[] {v_i, bestT};
+		return Optional.of(new PVector[] {from, bestT});
 	}
 
-	private PVector[] makeL_ik(final PVector v_i, final PVector v_k) {
+	/**
+	 * Compute the left segment from a point to another. from is typically i and to, k.
+	 *
+	 * @param from the vertex from which the segment is computed
+	 * @param to the vertex to which the segment is computed
+	 *
+	 * @return the left segment (l_ik)
+	 */
+	private Optional<PVector[]> makeLeft(final PVector from, final PVector to) {
 		boolean inRange = false;
 		PVector bestT = null;
 		double bestAngle = -1;
 
 		for(final PVector t : notches) {
 			//Check whether the notches are between a and b
-			boolean equal = t.equals(v_k) || t.equals(v_i);
+			boolean equal = t.equals(to) || t.equals(from);
 
 			if(equal) {
 				inRange = !inRange;
 			}
 			//Only consider the notches between a and b and ignore a and b
 			if(inRange && !equal) {
-				double angle = SimplePolygon.orientedAngle(v_k, v_i, t);
-				final int orientation = SimplePolygon.getTurnDirection(v_k, v_i, t);
+				double angle = SimplePolygon.orientedAngle(to, from, t);
+				final int orientation = SimplePolygon.getTurnDirection(to, from, t);
 
 				if(orientation != 0) {
 					angle *= orientation;
@@ -91,14 +106,15 @@ public class PatternDetector {
 			}
 		}
 		if(bestT == null) {
-			return new PVector[] {v_i, v_k};
+			return Optional.empty();
 		}
 
-		return new PVector[] {v_i, bestT};
+		return Optional.of(new PVector[] {from, bestT});
 	}
 
 	public void detectPatterns() {
 		buildData();
+		detectX3Pattern();
 	}
 
 	private void buildData() {
@@ -112,185 +128,254 @@ public class PatternDetector {
 					if(i == j || i == k || j == k) {
 						continue;
 					}
-					/*
-					 * Build l_ik and r_ij
-					 */
-					final PVector[] l_ik = makeL_ik(i, k);
-					final PVector[] r_ij = makeR_ij(i, j);
 					final List<PVector> rangeV_i = polygon.getNotchRange(i, nP);
+					final List<PVector> rangeV_j = polygon.getNotchRange(j, nP);
+					final List<PVector> rangeV_k = polygon.getNotchRange(k, nP);
+					final AtomicReference<PVector[]> finalL_ik = new AtomicReference<>();
+					final AtomicReference<PVector[]> finalR_ij = new AtomicReference<>();
+					final AtomicReference<PVector[]> finalL_ji = new AtomicReference<>();
+					final AtomicReference<PVector[]> finalR_jk = new AtomicReference<>();
+					final AtomicReference<PVector[]> finalL_kj = new AtomicReference<>();
+					final AtomicReference<PVector[]> finalR_ki = new AtomicReference<>();
 
-					if(rangeV_i.size() < 2) {
-						System.out.println("No 2 extremities in R(v_i)");
-						continue;
+					//TODO: Refactor this repetitive code
+					/*
+					 * Build v_i data
+					 */
+					if(rangeV_i.size() >= 2) {
+						makeLeft(i, k).ifPresent(
+								l_ik -> {
+									final PVector[] l = {i, rangeV_i.get(0)};
+									final PVector[] lPrime_ik = SimplePolygon.getTurnDirection(l_ik[1], l_ik[0], l[1]) > 0 ? l : l_ik;
+									finalL_ik.set(lPrime_ik);
+									final var data = new SegmentData(i, k, lPrime_ik);
+
+									if(!leftSegments.contains(data)) {
+										leftSegments.add(new SegmentData(i, k, lPrime_ik));
+										System.out.println("l_ik from " + i.toString() + " to " + k.toString() + ": " + Arrays.toString(lPrime_ik));
+									}
+								}
+						);
+						makeRight(i, j).ifPresent(
+								r_ij -> {
+									final PVector[] r = {i, rangeV_i.get(rangeV_i.size()-1)};
+									final PVector[] rPrime_ij = SimplePolygon.getTurnDirection(r[1], r[0], r_ij[1]) > 0 ? r : r_ij;
+									finalR_ij.set(rPrime_ij);
+									final var data = new SegmentData(i, j, rPrime_ij);
+
+									if(!rightSegments.contains(data)) {
+										rightSegments.add(new SegmentData(i, j, rPrime_ij));
+										System.out.println("r_ij from " + i.toString() + " to " + j.toString() + ": " + Arrays.toString(rPrime_ij));
+									}
+								}
+						);
 					}
 					/*
-					 * Build l'_ik and r'_ij
+					 * Build v_j data
 					 */
-					final PVector[] l = {i, rangeV_i.get(0)};
-					final PVector[] r = {i, rangeV_i.get(rangeV_i.size()-1)};
+					if(rangeV_j.size() >= 2) {
+						makeLeft(j, i).ifPresent(
+								l_ji -> {
+									final PVector[] l = {j, rangeV_j.get(0)};
+									final PVector[] lPrime_ji = SimplePolygon.getTurnDirection(l_ji[1], l_ji[0], l[1]) > 0 ? l : l_ji;
+									finalL_ji.set(lPrime_ji);
+									final var data = new SegmentData(j, i, lPrime_ji);
 
-					//If l_ik -> l is a left turn, l' = l, otherwise l' = l_ik
-					final PVector[] lPrime_ik = SimplePolygon.getTurnDirection(l_ik[1], l_ik[0], l[1]) > 0 ? l : l_ik;
-					//If r -> r_ij is a left turn, r' = r, otherwise r' = r_ij
-					final PVector[] rPrime_ij = SimplePolygon.getTurnDirection(r[1], r[0], r_ij[1]) > 0 ? r : r_ij;
+									if(!leftSegments.contains(data)) {
+										leftSegments.add(data);
+										System.out.println("l_ji from " + j.toString() + " to " + i.toString() + ": " + Arrays.toString(lPrime_ji));
+									}
+								}
+						);
+						makeRight(j, k).ifPresent(
+								r_jk -> {
+									final PVector[] r = {j, rangeV_j.get(rangeV_j.size()-1)};
+									final PVector[] rPrime_jk = SimplePolygon.getTurnDirection(r[1], r[0], r_jk[1]) > 0 ? r : r_jk;
+									finalR_jk.set(rPrime_jk);
+									final var data = new SegmentData(j, k, rPrime_jk);
 
-					final int iIndex = notches.indexOf(i);
-					final int jIndex = notches.indexOf(j);
-					final int kIndex = notches.indexOf(k);
+									if(!rightSegments.contains(data)) {
+										rightSegments.add(new SegmentData(j, k, rPrime_jk));
+										System.out.println("r_jk from " + j.toString() + " to " + k.toString() + ": " + Arrays.toString(rPrime_jk));
+									}
+								}
+						);
+					}
+					/*
+					 * Build v_k data
+					 */
+					if(rangeV_k.size() >= 2) {
+						makeLeft(k, j).ifPresent(
+								l_kj -> {
+									final PVector[] l = {k, rangeV_k.get(0)};
+									final PVector[] lPrime_kj = SimplePolygon.getTurnDirection(l_kj[1], l_kj[0], l[1]) > 0 ? l : l_kj;
+									finalL_kj.set(lPrime_kj);
+									final var data = new SegmentData(k, j, lPrime_kj);
 
-					//Add r'_ij to the data matrix
-					addSegmentPrime(lPrime_ik);
-					//segmentMatrix[iIndex][jIndex].add(rPrime_ij);
-					//Add l'_ik to the data matrix
-					addSegmentPrime(rPrime_ij);
-					//segmentMatrix[iIndex][kIndex].add(lPrime_ik);
+									if(!leftSegments.contains(data)) {
+										leftSegments.add(new SegmentData(k, j, lPrime_kj));
+										System.out.println("l_kj from " + k.toString() + " to " + j.toString() + ": " + Arrays.toString(lPrime_kj));
+									}
+								}
+						);
+						makeRight(k, i).ifPresent(
+								r_ki -> {
+									final PVector[] r = {k, rangeV_k.get(rangeV_k.size()-1)};
+									final PVector[] rPrime_ki = SimplePolygon.getTurnDirection(r[1], r[0], r_ki[1]) > 0 ? r : r_ki;
+									finalR_ki.set(rPrime_ki);
+									final var data = new SegmentData(k, i, rPrime_ki);
 
-					//Get M_ij
-					/*final PVector M_ij = lPrime_ik[0]; //= rPrime_ij[0] too.
-					final boolean withinP = polygon.isInside(i, M_ij) && polygon.isInside(j, M_ij);
-					System.out.println("i: " + i.toString() + ", j: " + j.toString() + ", M: " + M_ij.toString());
-					System.out.println("within?: " + withinP);
-					final var data = new PatternData(lPrime_ik, rPrime_ij, M_ij, withinP);
-
-					if(!dataList.contains(data)) {
-						dataList.add(data);
-					}*/
+									if(!rightSegments.contains(data)) {
+										rightSegments.add(new SegmentData(k, i, rPrime_ki));
+										System.out.println("r_ki from " + k.toString() + " to " + i.toString() + ": " + Arrays.toString(rPrime_ki));
+									}
+								}
+						);
+					}
+					//Check for intersections
+					if(finalR_ij.get() != null && finalL_ji.get() != null) {
+						SimplePolygon.getIntersection(finalR_ij.get(), finalL_ji.get())
+								.ifPresent(intersection -> {
+									intersections.add(new IntersectionData(i, j, intersection,
+											polygon.isInside(i, intersection) && polygon.isInside(j, intersection)));
+									System.out.println("M_ij: " + intersection.toString());
+								});
+					}
+					if(finalR_jk.get() != null && finalL_kj.get() != null) {
+						SimplePolygon.getIntersection(finalR_jk.get(), finalL_kj.get())
+								.ifPresent(intersection -> {
+									intersections.add(new IntersectionData(j, k, intersection,
+											polygon.isInside(j, intersection) && polygon.isInside(k, intersection)));
+									System.out.println("M_jk: " + intersection.toString());
+								});
+					}
+					if(finalR_ki.get() != null && finalL_ik.get() != null) {
+						SimplePolygon.getIntersection(finalR_ki.get(), finalL_ik.get())
+								.ifPresent(intersection -> {
+									intersections.add(new IntersectionData(k, i, intersection,
+											polygon.isInside(k, intersection) && polygon.isInside(i, intersection)));
+									System.out.println("M_ki: " + intersection.toString());
+								});
+					}
 				}
 			}
-		}
-	}
-
-	private void addSegmentPrime(final PVector[] segment) {
-		boolean unique = true;
-
-		for(final PVector[] vector : segmentPrimes.keySet()) {
-			if(vector[0] == segment[0] && vector[1] == segment[1]) {
-				unique = false;
-				break;
-			}
-		}
-		if(unique) {
-			//Compute all intersections
-			getIntersections(segment);
-			segmentPrimes.put(segment, polygon.isInside(segment));
-		}
-	}
-
-	private void getIntersections(final PVector[] segment) {
-		for(final PVector[] other : segmentPrimes.keySet()) {
-			SimplePolygon.getIntersection(segment, other)
-					.ifPresent(intersection -> intersections.add(new IntersectionData(segment,
-							other,
-							intersection)
-					));
 		}
 	}
 
 	private void detectX3Pattern() {
+		for(final PVector i : notches) {
+			for(final PVector j : notches) {
+				for(final PVector k : notches) {
+					final Optional<SegmentData> lPrime_ik = leftSegments.stream()
+							.filter(data -> data.from.equals(i) && data.to.equals(k))
+							.findFirst();
+					final Optional<SegmentData> rPrime_ij = rightSegments.stream()
+							.filter(data -> data.from.equals(i) && data.to.equals(j))
+							.findFirst();
+					final Optional<SegmentData> lPrime_ji = leftSegments.stream()
+							.filter(data -> data.from.equals(j) && data.to.equals(i))
+							.findFirst();
+					final Optional<SegmentData> rPrime_jk = rightSegments.stream()
+							.filter(data -> data.from.equals(j) && data.to.equals(k))
+							.findFirst();
+					final Optional<SegmentData> lPrime_kj = leftSegments.stream()
+							.filter(data -> data.from.equals(k) && data.to.equals(j))
+							.findFirst();
+					final Optional<SegmentData> rPrime_ki = rightSegments.stream()
+							.filter(data -> data.from.equals(k) && data.to.equals(i))
+							.findFirst();
 
+					if(lPrime_ik.isEmpty() || rPrime_ij.isEmpty() || lPrime_ji.isEmpty() || rPrime_jk.isEmpty()
+							|| lPrime_kj.isEmpty() || rPrime_ki.isEmpty()) {
+						continue;
+					}
+					if(SimplePolygon.getTurnDirection(lPrime_ik.get().segment, rPrime_ij.get().getSegment()) < 0
+						|| SimplePolygon.getTurnDirection(lPrime_ji.get().segment, rPrime_jk.get().getSegment()) < 0
+						|| SimplePolygon.getTurnDirection(lPrime_kj.get().segment, rPrime_ki.get().getSegment()) < 0) {
+						continue;
+					}
+					final Optional<IntersectionData> M_ij = intersections.stream()
+							.filter(data -> data.from.equals(i) && data.to.equals(j))
+							.findFirst();
+					final Optional<IntersectionData> M_jk = intersections.stream()
+							.filter(data -> data.from.equals(j) && data.to.equals(k))
+							.findFirst();
+					final Optional<IntersectionData> M_ki = intersections.stream()
+							.filter(data -> data.from.equals(k) && data.to.equals(i))
+							.findFirst();
+
+					if(M_ij.isEmpty() || M_jk.isEmpty() || M_ki.isEmpty()) {
+						continue;
+					}
+					if(!M_ij.get().flag || !M_jk.get().flag || !M_ki.get().flag) {
+						continue;
+					}
+					System.out.println("Candidate for an X3 pattern: " + i + j + k);
+				}
+			}
+		}
 	}
 
 	public void displaySegments() {
-		for(final var entrySet : segmentPrimes.entrySet()) {
+		/*System.out.println("\n-===[ l' ]===-\n");
+		for(final var entrySet : leftSegments.entrySet()) {
 			System.out.println(Arrays.toString(entrySet.getKey()) + ": " + entrySet.getValue());
 		}
-		System.out.println("Intersections:");
-		for(final IntersectionData data : intersections) {
-			System.out.println(data.toString());
+		System.out.println("\n-===[r']===-\n");
+		for(final var entrySet : rightSegments.entrySet()) {
+			System.out.println(Arrays.toString(entrySet.getKey()) + ": " + entrySet.getValue());
 		}
+		System.out.println("\nINTERSECTIONS\n");
+		for(final IntersectionData intersectionData : intersections) {
+			System.out.println(intersectionData.toString());
+		}*/
 	}
 
-	public static class SegmentData {
+	private static class IntersectionData {
 
-		private final List<PVector[]> data = new ArrayList<>();
+		private final PVector from;
 
-		public void add(final PVector[] segmentPrime) {
-			boolean unique = true;
-
-			for(final PVector[] vector : data) {
-				if(vector[0] == segmentPrime[0] && vector[1] == segmentPrime[1]) {
-					unique = false;
-					break;
-				}
-			}
-			if(unique) {
-				data.add(segmentPrime);
-			}
-		}
-
-		public final String toString() {
-			final var stringBuilder = new StringBuilder();
-
-			for(final PVector[] vector : data) {
-				stringBuilder.append(Arrays.toString(vector)).append(" ; ");
-			}
-
-			return stringBuilder.toString();
-		}
-
-	}
-
-	public static class IntersectionData {
-
-		private final PVector[] firstSegment;
-
-		private final PVector[] secondSegment;
+		private final PVector to;
 
 		private final PVector intersection;
 
-		public IntersectionData(final PVector[] firstSegment, final PVector[] secondSegment, final PVector intersection) {
-			this.firstSegment = firstSegment;
-			this.secondSegment = secondSegment;
+		private final boolean flag;
+
+		public IntersectionData(final PVector from, final PVector to, final PVector intersection, final boolean flag) {
+			this.from = from;
+			this.to = to;
 			this.intersection = intersection;
+			this.flag = flag;
 		}
 
 		public final String toString() {
-            return Arrays.toString(firstSegment) +
+            return from.toString() +
 					" ; " +
-					Arrays.toString(secondSegment) +
+					to.toString() +
 					" at " +
-					intersection.toString();
+					intersection.toString() +
+					" flag: " + flag;
 		}
 
 	}
 
-	/*//TODO: Put it back to private if necessary
-	public static class PatternData {
+	private static class SegmentData {
 
-		private final PVector[] lPrime_ik;
+		private final PVector from;
 
-		private final PVector[] rPrime_ij;
+		private final PVector to;
 
-		private final PVector M_ij;
+		private final PVector[] segment;
 
-		private final boolean withinP;
-
-		public PatternData(final PVector[] lPrime_ik, final PVector[] rPrime_ij, final PVector m_ij, final boolean withinP) {
-			this.lPrime_ik = lPrime_ik;
-			this.rPrime_ij = rPrime_ij;
-			this.M_ij = m_ij;
-			this.withinP = withinP;
-		}
-
-		public PVector[] getLPrime_ik() {
-			return lPrime_ik;
-		}
-
-		public PVector[] getRPrime_ij() {
-			return rPrime_ij;
-		}
-
-		public PVector getM_ij() {
-			return M_ij;
-		}
-
-		public boolean isWithinP() {
-			return withinP;
+		public SegmentData(PVector from, PVector to, PVector[] segment) {
+			this.from = from;
+			this.to = to;
+			this.segment = segment;
 		}
 
 		@Override
 		public final int hashCode() {
-			return Objects.hash(Arrays.hashCode(lPrime_ik), Arrays.hashCode(rPrime_ij), M_ij, withinP);
+			return Objects.hash(from, to, Arrays.hashCode(segment));
 		}
 
 		@Override
@@ -298,26 +383,18 @@ public class PatternDetector {
 			if(other == null) {
 				return false;
 			}
-			if(this == other) {
-				return true;
-			}
-			if(!(other instanceof final PatternData otherPatternData)) {
+			if(!(other instanceof SegmentData otherData)) {
 				return false;
 			}
 
-			return Arrays.equals(otherPatternData.lPrime_ik, this.lPrime_ik)
-					&& Arrays.equals(otherPatternData.rPrime_ij, this.rPrime_ij)
-					&& Objects.equals(otherPatternData.M_ij, this.M_ij)
-					&& otherPatternData.withinP == this.withinP;
+			return Objects.equals(otherData.from, this.from)
+					&& Objects.equals(otherData.to, this.to)
+					&& Arrays.equals(otherData.segment, this.segment);
 		}
 
-		public final String toString() {
-			return "lPrime_ik: " + Arrays.toString(lPrime_ik) +
-					", rPrime_ij: " + Arrays.toString(rPrime_ij) +
-					", M_ij: " + M_ij.toString() +
-					", withinP: " + withinP;
+		public PVector[] getSegment() {
+			return segment;
 		}
-
-	}*/
+	}
 
 }
