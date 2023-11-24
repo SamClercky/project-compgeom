@@ -12,13 +12,21 @@ public class SlabDecomposition {
     private final EventQueue<EventTypes, Event<EventTypes>> queue;
     private final PVector direction;
     private final DoublyConnectedEdgeList decomposition;
+    private final float theta;
 
     public SlabDecomposition(PVector direction, Polygon polygon) {
-        @SuppressWarnings("SuspiciousNameCombination") final var orthogonalDirection = new PVector(direction.y, direction.x);
+        @SuppressWarnings("SuspiciousNameCombination") final var orthogonalDirection = new PVector(direction.y, direction.x).normalize();
+        this.theta = PVector.angleBetween(new PVector(0, 1), direction);
 
-        this.sweepLine = SweepLine.fromDirection(orthogonalDirection);
-        this.queue = EventQueue.fromDirection(orthogonalDirection);
-        this.direction = direction;
+        this.sweepLine = SweepLine.fromDirection(new PVector(1, 0));
+        this.queue = EventQueue.fromDirection(new PVector(1, 0));
+        this.direction = direction.normalize();
+
+        // Transform all points, before consuming them in the DCEL
+        for (var point : polygon.points()) {
+            point.rotate(theta);
+        }
+
         this.decomposition = new DoublyConnectedEdgeList(polygon);
     }
 
@@ -227,6 +235,11 @@ public class SlabDecomposition {
     }
 
     public DoublyConnectedEdgeList getDecomposition() {
+        // Transform back
+        for (var vertex : decomposition.getVertices()) {
+            vertex.getPoint().rotate(-this.theta);
+        }
+
         return decomposition;
     }
 

@@ -132,10 +132,106 @@ class SlabDecompositionTest extends DecompositionTest {
     }
 
     @Test
+    void decomposeIdentsY() throws IOException {
+        final var polygon = readPolygon("indented.poly");
+
+        final var decomposition = new SlabDecomposition(new PVector(1, 0), polygon);
+        decomposition.buildEventQueue();
+        decomposition.run();
+        final var result = decomposition.getDecomposition();
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertValidDecomposition(polygon, result);
+        assertEquals(9, result.getVertices().size());
+        assertEquals(4, result.getFaces().size());
+        assertEquals(24, result.getEdges().size());
+    }
+
+    @Test
+    void decomposeIdents45() throws IOException {
+        final var polygon = readPolygon("indented.poly");
+
+        final var decomposition = new SlabDecomposition(new PVector(1, 1), polygon);
+        decomposition.buildEventQueue();
+        decomposition.run();
+        final var result = decomposition.getDecomposition();
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertValidDecomposition(polygon, result);
+        assertEquals(8, result.getVertices().size());
+        assertEquals(3, result.getFaces().size());
+        assertEquals(20, result.getEdges().size());
+    }
+
+    @Test
+    void decomposeIdentsMIN45() throws IOException {
+        final var polygon = readPolygon("indented.poly");
+
+        final var decomposition = new SlabDecomposition(new PVector(-1, -1), polygon);
+        decomposition.buildEventQueue();
+        decomposition.run();
+        final var result = decomposition.getDecomposition();
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertValidDecomposition(polygon, result);
+        assertEquals(9, result.getVertices().size());
+        assertEquals(4, result.getFaces().size());
+        assertEquals(24, result.getEdges().size());
+    }
+
+    @Test
     void decomposeIdentsHorizontal() throws IOException {
         final var polygon = readPolygon("indented-horizontal.poly");
 
         final var decomposition = new SlabDecomposition(new PVector(0, 1), polygon);
+        decomposition.buildEventQueue();
+        decomposition.run();
+        final var result = decomposition.getDecomposition();
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertValidDecomposition(polygon, result);
+        assertEquals(10, result.getVertices().size());
+        assertEquals(5, result.getFaces().size());
+        assertEquals(28, result.getEdges().size());
+    }
+
+    @Test
+    void decomposeIdentsHorizontalY() throws IOException {
+        final var polygon = readPolygon("indented-horizontal.poly");
+
+        final var decomposition = new SlabDecomposition(new PVector(1, 0), polygon);
+        decomposition.buildEventQueue();
+        decomposition.run();
+        final var result = decomposition.getDecomposition();
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertValidDecomposition(polygon, result);
+        assertEquals(8, result.getVertices().size());
+        assertEquals(3, result.getFaces().size());
+        assertEquals(20, result.getEdges().size());
+    }
+
+    @Test
+    void decomposeIdentsHorizontal45() throws IOException {
+        final var polygon = readPolygon("indented-horizontal.poly");
+
+        final var decomposition = new SlabDecomposition(new PVector(1, 1), polygon);
+        decomposition.buildEventQueue();
+        decomposition.run();
+        final var result = decomposition.getDecomposition();
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertValidDecomposition(polygon, result);
+        assertEquals(8, result.getVertices().size());
+        assertEquals(3, result.getFaces().size());
+        assertEquals(20, result.getEdges().size());
+    }
+
+    @Test
+    void decomposeIdentsHorizontalMIN45() throws IOException {
+        final var polygon = readPolygon("indented-horizontal.poly");
+
+        final var decomposition = new SlabDecomposition(new PVector(-1, -1), polygon);
         decomposition.buildEventQueue();
         decomposition.run();
         final var result = decomposition.getDecomposition();
@@ -157,10 +253,58 @@ class SlabDecompositionTest extends DecompositionTest {
         final var result = decomposition.getDecomposition();
 
         // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertValidDecomposition(polygon, result);
         assertEquals(8, result.getVertices().size());
         assertEquals(3, result.getFaces().size());
         assertEquals(20, result.getEdges().size());
+    }
+
+    @Test
+    void decomposeIdentsSkewedY() throws IOException {
+        final var polygon = readPolygon("indented-skewed.poly");
+
+        final var decomposition = new SlabDecomposition(new PVector(1, 0), polygon);
+        decomposition.buildEventQueue();
+        decomposition.run();
+        final var result = decomposition.getDecomposition();
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
         assertValidDecomposition(polygon, result);
+        assertEquals(8, result.getVertices().size());
+        assertEquals(3, result.getFaces().size());
+        assertEquals(20, result.getEdges().size());
+    }
+
+    @Test
+    void decomposeIdentsSkewed45() throws IOException {
+        final var polygon = readPolygon("indented-skewed.poly");
+
+        final var decomposition = new SlabDecomposition(new PVector(1, 1), polygon);
+        decomposition.buildEventQueue();
+        decomposition.run();
+        final var result = decomposition.getDecomposition();
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertValidDecomposition(polygon, result);
+        assertEquals(8, result.getVertices().size());
+        assertEquals(3, result.getFaces().size());
+        assertEquals(20, result.getEdges().size());
+    }
+
+    @Test
+    void decomposeIdentsSkewedMIN45() throws IOException {
+        final var polygon = readPolygon("indented-skewed.poly");
+
+        final var decomposition = new SlabDecomposition(new PVector(-1, -1), polygon);
+        decomposition.buildEventQueue();
+        decomposition.run();
+        final var result = decomposition.getDecomposition();
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertValidDecomposition(polygon, result);
+        assertEquals(8, result.getVertices().size());
+        assertEquals(3, result.getFaces().size());
+        assertEquals(20, result.getEdges().size());
     }
 
     @Test
@@ -173,10 +317,58 @@ class SlabDecompositionTest extends DecompositionTest {
         final var result = decomposition.getDecomposition();
 
         // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertValidDecomposition(polygon, result);
         assertEquals(45, result.getVertices().size());
         assertEquals(16, result.getFaces().size());
         assertEquals(120, result.getEdges().size());
+    }
+
+    @Test
+    void decomposeCurlY() throws IOException {
+        final var polygon = readPolygon("curl.poly");
+
+        final var decomposition = new SlabDecomposition(new PVector(1, 0), polygon);
+        decomposition.buildEventQueue();
+        decomposition.run();
+        final var result = decomposition.getDecomposition();
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
         assertValidDecomposition(polygon, result);
+        assertEquals(45, result.getVertices().size());
+        assertEquals(16, result.getFaces().size());
+        assertEquals(120, result.getEdges().size());
+    }
+
+    @Test
+    void decomposeCurl45() throws IOException {
+        final var polygon = readPolygon("curl.poly");
+
+        final var decomposition = new SlabDecomposition(new PVector(1, 1), polygon);
+        decomposition.buildEventQueue();
+        decomposition.run();
+        final var result = decomposition.getDecomposition();
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertValidDecomposition(polygon, result);
+        assertEquals(45, result.getVertices().size());
+        assertEquals(16, result.getFaces().size());
+        assertEquals(120, result.getEdges().size());
+    }
+
+    @Test
+    void decomposeCurlMIN45() throws IOException {
+        final var polygon = readPolygon("curl.poly");
+
+        final var decomposition = new SlabDecomposition(new PVector(-1, -1), polygon);
+        decomposition.buildEventQueue();
+        decomposition.run();
+        final var result = decomposition.getDecomposition();
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertValidDecomposition(polygon, result);
+        assertEquals(46, result.getVertices().size());
+        assertEquals(16, result.getFaces().size());
+        assertEquals(122, result.getEdges().size());
     }
 
     @Test
@@ -189,10 +381,58 @@ class SlabDecompositionTest extends DecompositionTest {
         final var result = decomposition.getDecomposition();
 
         // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertValidDecomposition(polygon, result);
         assertEquals(53, result.getVertices().size());
         assertEquals(18, result.getFaces().size());
         assertEquals(140, result.getEdges().size());
+    }
+
+    @Test
+    void decomposeCurlInvY() throws IOException {
+        final var polygon = readPolygon("curl-inverted.poly");
+
+        final var decomposition = new SlabDecomposition(new PVector(1, 0), polygon);
+        decomposition.buildEventQueue();
+        decomposition.run();
+        final var result = decomposition.getDecomposition();
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
         assertValidDecomposition(polygon, result);
+        assertEquals(53, result.getVertices().size());
+        assertEquals(18, result.getFaces().size());
+        assertEquals(140, result.getEdges().size());
+    }
+
+    @Test
+    void decomposeCurlInv45() throws IOException {
+        final var polygon = readPolygon("curl-inverted.poly");
+
+        final var decomposition = new SlabDecomposition(new PVector(1, 1), polygon);
+        decomposition.buildEventQueue();
+        decomposition.run();
+        final var result = decomposition.getDecomposition();
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertValidDecomposition(polygon, result);
+        assertEquals(53, result.getVertices().size());
+        assertEquals(18, result.getFaces().size());
+        assertEquals(140, result.getEdges().size());
+    }
+
+    @Test
+    void decomposeCurlInvMIN45() throws IOException {
+        final var polygon = readPolygon("curl-inverted.poly");
+
+        final var decomposition = new SlabDecomposition(new PVector(-1, -1), polygon);
+        decomposition.buildEventQueue();
+        decomposition.run();
+        final var result = decomposition.getDecomposition();
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertValidDecomposition(polygon, result);
+        assertEquals(54, result.getVertices().size());
+        assertEquals(19, result.getFaces().size());
+        assertEquals(144, result.getEdges().size());
     }
 
     void assertEventEquals(PVector expectedPoint, EventTypes expectedReason, Event<EventTypes> observed) {
