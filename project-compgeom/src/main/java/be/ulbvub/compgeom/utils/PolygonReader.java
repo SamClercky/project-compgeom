@@ -5,10 +5,14 @@ import processing.core.PVector;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class PolygonReader {
+    private static File lastRead;
     private final ArrayList<PVector> polygon;
 
     public PolygonReader() {
@@ -21,6 +25,9 @@ public class PolygonReader {
 
     public void openFileDialog() {
         final var dialog = new JFileChooser();
+        if (lastRead != null && lastRead.exists() && lastRead.getParentFile().isDirectory()) {
+            dialog.setCurrentDirectory(lastRead.getParentFile());
+        }
         final var filter = new FileNameExtensionFilter("Polygon description files", "poly");
         dialog.setFileFilter(filter);
 
@@ -28,7 +35,9 @@ public class PolygonReader {
         switch (status) {
             case JFileChooser.APPROVE_OPTION -> {
                 try {
-                    readFile(dialog.getSelectedFile());
+                    final var selected = dialog.getSelectedFile();
+                    lastRead = selected;
+                    readFile(selected);
                 } catch (IOException | RuntimeException ex) {
                     JOptionPane.showMessageDialog(
                             null,
@@ -46,7 +55,8 @@ public class PolygonReader {
                         "Polygon read",
                         JOptionPane.ERROR_MESSAGE);
             }
-            default -> {}
+            default -> {
+            }
         }
     }
 
