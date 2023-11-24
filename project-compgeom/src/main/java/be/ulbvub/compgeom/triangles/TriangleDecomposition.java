@@ -90,10 +90,16 @@ public class TriangleDecomposition {
     public static DoublyConnectedEdgeList decompose(Polygon p, boolean greedy){
         //first split into y-monotone polygons
         DoublyConnectedEdgeList dcEdgeList = splitMonotone(p, greedy);
+        if(greedy && !dcEdgeList.hasReflex()){
+            return dcEdgeList;
+        }
         System.out.println("Number of monotone polygons:" + dcEdgeList.getFaces().size());
         for(DCFace face : (ArrayList<DCFace>) dcEdgeList.getFaces().clone()){//copy list because triangulation modify it
             triangulateYMonotonePolygon(dcEdgeList, face, greedy);
-            if(greedy && !dcEdgeList.hasReflex())break;
+            if(greedy && !dcEdgeList.hasReflex()){
+                System.out.println("Break because no more reflex");
+                break;
+            }
         }
         return dcEdgeList;
     }

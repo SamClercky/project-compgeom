@@ -50,8 +50,8 @@ class TriangleDecompositionTest extends DecompositionTest {
         // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
         assertValidDecomposition(polygon, result);
         assertEquals(polygon.points().size(), result.getVertices().size());
-        assertEquals(3, result.getFaces().size());
-        assertEquals(16, result.getEdges().size());
+        assertEquals(2, result.getFaces().size());
+        assertEquals(14, result.getEdges().size());
     }
 
     @Test
@@ -98,8 +98,8 @@ class TriangleDecompositionTest extends DecompositionTest {
         // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
         assertValidDecomposition(polygon, result);
         assertEquals(polygon.points().size(), result.getVertices().size());
-        assertEquals(3, result.getFaces().size());
-        assertEquals(16, result.getEdges().size());
+        assertEquals(4, result.getFaces().size());
+        assertEquals(18, result.getEdges().size());
     }
 
     @Test
@@ -122,8 +122,8 @@ class TriangleDecompositionTest extends DecompositionTest {
         // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
         assertValidDecomposition(polygon, result);
         assertEquals(polygon.points().size(), result.getVertices().size());
-        assertEquals(8, result.getFaces().size());
-        assertEquals(34, result.getEdges().size());
+        assertEquals(7, result.getFaces().size());
+        assertEquals(32, result.getEdges().size());
     }
 
     @Test

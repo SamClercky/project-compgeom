@@ -16,7 +16,7 @@ public class DoublyConnectedEdgeList implements Drawable {
     ArrayList<DCFace> faces = new ArrayList<DCFace>();
 
 
-    HashMap<DCVertex,DCFace> reflexVertices = new HashMap<>();
+    ArrayList<DCVertex> reflexVertices = new ArrayList<>();
 
     public DoublyConnectedEdgeList(Polygon polygon) {
         this(polygon.points());
@@ -84,9 +84,10 @@ public class DoublyConnectedEdgeList implements Drawable {
             PVector next = vertex.getLeavingEdge().getDestination().getPoint();
             TurnDirection dir = TurnDirection.orientation(prev, vertex.getPoint(), next);
             if(dir != TurnDirection.LEFT){//reflex angle
-                reflexVertices.put(vertex, vertex.getLeavingEdge().getFace());
+                reflexVertices.add(vertex);
             }
         }
+
 
     }
 
@@ -248,42 +249,39 @@ public class DoublyConnectedEdgeList implements Drawable {
 
         //update reflexVertices if needed
 
-        if(reflexVertices.get(vertex1) != null) {
+        if(reflexVertices.contains(vertex1)) {
+            boolean keep = false;
             PVector prev = getPrevEdgeOfFace(vertex1, newFace).getOrigin().getPoint();
             PVector next = vertex2.getPoint();
             TurnDirection dir = TurnDirection.orientation(prev, vertex1.getPoint(), next);
-            if (dir != TurnDirection.LEFT) {//reflex angle
-                reflexVertices.put(vertex1, newFace);
-            }else{
-                reflexVertices.remove(vertex1);
-            }
+            if (dir != TurnDirection.LEFT) //reflex angle
+                keep = true;
+
             prev = vertex2.getPoint();
             next = bottomEdge.getNext().getDestination().getPoint();
             dir = TurnDirection.orientation(prev, vertex1.getPoint(), next);
-            if (dir != TurnDirection.LEFT) {//reflex angle
-                reflexVertices.put(vertex1, existingFace);
-            }else{
+            if (dir != TurnDirection.LEFT) //reflex angle
+                keep = true;
+
+            if(!keep)
                 reflexVertices.remove(vertex1);
-            }
         }
 
-        if(reflexVertices.get(vertex2) != null) {
+        if(reflexVertices.contains(vertex2)) {
+            boolean keep = false;
             PVector prev = vertex1.getPoint();
             PVector next = topEdge.getNext().getDestination().getPoint();
             TurnDirection dir = TurnDirection.orientation(prev, vertex2.getPoint(), next);
-            if (dir != TurnDirection.LEFT) {//reflex angle
-                reflexVertices.put(vertex2, newFace);
-            }else{
-                reflexVertices.remove(vertex2);
-            }
+            if (dir != TurnDirection.LEFT) //reflex angle
+                keep = true;
             prev = getPrevEdgeOfFace(vertex2, existingFace).getOrigin().getPoint();
             next = vertex1.getPoint();
             dir = TurnDirection.orientation(prev, vertex2.getPoint(), next);
-            if (dir != TurnDirection.LEFT) {//reflex angle
-                reflexVertices.put(vertex2, existingFace);
-            }else{
+            if (dir != TurnDirection.LEFT) //reflex angle
+                keep = true;
+
+            if(!keep)
                 reflexVertices.remove(vertex2);
-            }
         }
         return reflexVertices.isEmpty();
     }
