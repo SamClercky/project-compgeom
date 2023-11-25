@@ -132,4 +132,19 @@ class KdDecompositionTest extends DecompositionTest {
         assertEquals(17, result.getFaces().size());
         assertEquals(136, result.getEdges().size());
     }
+
+    @Test
+    void decomposeSaw() throws IOException {
+        final var polygon = readPolygon("zaag.poly");
+
+        final var decomposition = new KdDecomposition(polygon);
+        decomposition.run();
+        final var result = decomposition.getDecomposition();
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertValidDecomposition(polygon, result);
+        assertEquals(29, result.getVertices().size());
+        assertEquals(12, result.getFaces().size());
+        assertEquals(80, result.getEdges().size());
+    }
 }

@@ -153,7 +153,7 @@ public class MainScreen extends PApplet {
                             .draw((ctx1) -> btnSave.draw(ctx1))
                             .draw((ctx2) -> btnOpen.draw(ctx2))
                             .draw((ctx3) -> btnDecompose.draw(ctx3))
-                            .draw((ctx4) -> btnExplain.draw(ctx4))
+//                            .draw((ctx4) -> btnExplain.draw(ctx4))
                             .draw((ctx5) -> btnReset.draw(ctx5))
                             .draw((ctx6) -> btnToggleDCEL.draw(ctx6));
                 })

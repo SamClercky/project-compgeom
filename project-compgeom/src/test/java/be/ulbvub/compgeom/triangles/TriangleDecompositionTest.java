@@ -173,4 +173,30 @@ class TriangleDecompositionTest extends DecompositionTest {
         assertEquals(34, result.getFaces().size());
         assertEquals(138, result.getEdges().size());
     }
+
+    @Test
+    void decomposeSaw() throws IOException {
+        final var polygon = readPolygon("zaag.poly");
+
+        final var result = TriangleDecomposition.decompose(polygon, false);
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertValidDecomposition(polygon, result);
+        assertEquals(18, result.getVertices().size());
+        assertEquals(16, result.getFaces().size());
+        assertEquals(66, result.getEdges().size());
+    }
+
+    @Test
+    void decomposeSawGreedy() throws IOException {
+        final var polygon = readPolygon("zaag.poly");
+
+        final var result = TriangleDecomposition.decompose(polygon, true);
+
+        // Decomposition should have added 8 more half edges, 2 more vertices and 2 more faces
+        assertValidDecomposition(polygon, result);
+        assertEquals(18, result.getVertices().size());
+        assertEquals(16, result.getFaces().size());
+        assertEquals(66, result.getEdges().size());
+    }
 }
