@@ -86,28 +86,29 @@ public class DecompositionConfigFrame extends JFrame {
     }
 
     private static class SlabConfigPane extends ConfigPanel {
-        private final JTextField fieldX;
-        private final JTextField fieldY;
+//        private final JTextField fieldX;
+//        private final JTextField fieldY;
 
         public SlabConfigPane() {
-            final var layout = new GridLayout(2, 2, 5, 5);
-            setLayout(layout);
-            final var labelX = new JLabel("Direction x: ");
-            fieldX = new JTextField("0", 3);
-            add(labelX);
-            add(fieldX);
-
-            final var labelY = new JLabel("Direction y: ");
-            fieldY = new JTextField("1", 3);
-            add(labelY);
-            add(fieldY);
+//            final var layout = new GridLayout(2, 2, 5, 5);
+//            setLayout(layout);
+//            final var labelX = new JLabel("Direction x: ");
+//            fieldX = new JTextField("0", 3);
+//            add(labelX);
+//            add(fieldX);
+//
+//            final var labelY = new JLabel("Direction y: ");
+//            fieldY = new JTextField("1", 3);
+//            add(labelY);
+//            add(fieldY);
         }
 
         @Override
         public DecompositionConfig.SlabConfig config(Polygon polygon) {
-            final var x = Float.parseFloat(fieldX.getText());
-            final var y = Float.parseFloat(fieldY.getText());
-            return new DecompositionConfig.SlabConfig(new PVector(x, y), polygon);
+//            final var x = Float.parseFloat(fieldX.getText());
+//            final var y = Float.parseFloat(fieldY.getText());
+//            return new DecompositionConfig.SlabConfig(new PVector(x, y), polygon);
+            return new DecompositionConfig.SlabConfig(new PVector(0, 1), polygon);
         }
     }
 
