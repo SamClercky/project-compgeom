@@ -21,20 +21,31 @@ public final class Line {
         return this.intersectRay(other) && other.intersectRay(this);
     }
 
-    public PVector intersectionPointWithRay(Line ray) {
-        final var dir = ray.end.copy().sub(ray.start);
-        final var lv = ray.start; // linear variation
+    public float rayIntersectsRay(Line otherRay) {
+        final var dir = otherRay.end.copy().sub(otherRay.start);
+        final var lv = otherRay.start; // linear variation
         var alpha = (dir.y * (end.x - lv.x) - end.y * dir.x + lv.y * dir.x) / (start.y * dir.x - end.y * dir.x - dir.y * (start.x - end.x));
         if (Float.isNaN(alpha)) {
             alpha = start.x < end.x || start.y < end.y ? 0.0f : 1.0f;
         }
+
+        return alpha;
+    }
+
+    public PVector pointAlongRay(float alpha) {
+        return start.copy().add(start.copy().sub(end).mult(alpha));
+    }
+
+    public PVector intersectionPointWithRay(Line ray) {
+        final var alpha = rayIntersectsRay(ray);
 
         // Assert that the target is on the line
         assert alpha >= 0;
         assert alpha <= 1;
 
         // Return found position
-        return start.copy().mult(alpha).add(end.copy().mult(1 - alpha));
+//        return start.copy().mult(alpha).add(end.copy().mult(1 - alpha));
+        return pointAlongRay(alpha);
     }
 
     public float pointOnRay(PVector point) {
@@ -50,8 +61,12 @@ public final class Line {
         }
 
         // Assert on ray
-        assert Math.abs(betaDir.x - beta * dir.x) < 1e-4;
-        assert Math.abs(betaDir.y - beta * dir.y) < 1e-4;
+        if (Math.abs(betaDir.x - beta * dir.x) > 1e-4) {
+            System.out.println("Something fishy happened while determining beta: " + beta + ", " + this + " w/ point: " + point + " -> test: " + (betaDir.x - beta * dir.x));
+        }
+        if (Math.abs(betaDir.y - beta * dir.y) > 1e-4) {
+            System.out.println("Something fishy happened while determining beta: " + beta + ", " + this + " w/ point: " + point + " -> test: " + (betaDir.y - beta * dir.y));
+        }
 
         return beta;
     }
@@ -125,6 +140,14 @@ public final class Line {
 
     public void setEnd(PVector end) {
         this.end = end;
+    }
+
+    public boolean isAlongY() {
+        return start.x == end.x;
+    }
+
+    public boolean isAlongX() {
+        return start.y == end.y;
     }
 
     @Override

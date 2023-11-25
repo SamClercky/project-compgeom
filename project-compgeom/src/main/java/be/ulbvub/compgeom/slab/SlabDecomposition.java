@@ -16,8 +16,8 @@ public class SlabDecomposition {
     public SlabDecomposition(PVector direction, Polygon polygon) {
         this.theta = PVector.angleBetween(new PVector(0, 1), direction);
 
-        this.sweepLine = SweepLine.fromDirection(new PVector(1, 0));
-        this.queue = EventQueue.fromDirection(new PVector(1, 0));
+        this.sweepLine = new SweepLine();
+        this.queue = new EventQueue<>();
 
         // Transform all points, before consuming them in the DCEL
         for (var point : polygon.points()) {
@@ -151,7 +151,7 @@ public class SlabDecomposition {
     }
 
     private void emitReflex(Event<EventTypes> event) {
-        final var reflexPoint = new Line(event.getPoint(), event.getPoint().copy().add(new PVector(1, 0)));
+        final var reflexPoint = new Line(event.getPoint(), event.getPoint().copy().add(new PVector(0, 1)));
 
         final var edgeAbove = sweepLine.higher(reflexPoint);
         final var edgeBelow = sweepLine.lower(reflexPoint);

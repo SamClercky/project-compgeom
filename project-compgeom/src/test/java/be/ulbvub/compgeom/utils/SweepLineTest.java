@@ -81,10 +81,35 @@ class SweepLineTest {
         var reflexPoint = new Line(new PVector(413.0f, 328.0f), new PVector(414.0f, 328.0f));
         var comparator = new SweepLine.XComparator();
 
+        assertEquals(-1, comparator.compare(lower, higher));
+        assertEquals(1, comparator.compare(higher, lower));
         assertEquals(-1, comparator.compare(reflexPoint, higher));
         assertEquals(1, comparator.compare(higher, reflexPoint));
         assertEquals(1, comparator.compare(reflexPoint, lower));
         assertEquals(-1, comparator.compare(lower, reflexPoint));
+
+        assertEquals(higher, sweepline.higher(reflexPoint));
+        assertEquals(lower, sweepline.lower(reflexPoint));
+    }
+
+    @Test
+    void testXComparatorIndentHorizontal45() {
+        var sweepline = SweepLine.fromDirection(new PVector(0, 1));
+        var higher = new Line(new PVector(73.53909f, 642.053f), new PVector(265.16504f, 437.6991f));
+        var lower = new Line(new PVector(-67.88226f, 485.07526f), new PVector(89.80257f, 284.96405f));
+
+        var reflexPoint = new Line(new PVector(81.317276f, 484.36816f), new PVector(81.317276f, 485.36816f));
+        var comparator = new SweepLine.XComparator();
+
+        assertEquals(-1, comparator.compare(lower, higher));
+        assertEquals(1, comparator.compare(higher, lower));
+        assertEquals(-1, comparator.compare(reflexPoint, higher));
+        assertEquals(1, comparator.compare(higher, reflexPoint));
+        assertEquals(1, comparator.compare(reflexPoint, lower));
+        assertEquals(-1, comparator.compare(lower, reflexPoint));
+
+        sweepline.add(higher);
+        sweepline.add(lower);
 
         assertEquals(higher, sweepline.higher(reflexPoint));
         assertEquals(lower, sweepline.lower(reflexPoint));
