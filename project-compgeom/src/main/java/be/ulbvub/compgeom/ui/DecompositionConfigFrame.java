@@ -24,17 +24,15 @@ public class DecompositionConfigFrame extends JFrame {
         contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.PAGE_AXIS));
         contentPane.add(new JLabel("Decomposition configuration"));
 
-        final var algorithms = new String[]{"None selected", "Triangulation", "Greedy decomposition", "Slab decomposition", "Kd decomposition"};
-        final var algorithmSelector = new JComboBox<>(algorithms);
-        algorithmSelector.setSelectedIndex(0);
+        final var algorithmSelector = Decompositions.getCombobox();
         contentPane.add(algorithmSelector);
         algorithmSelector.addActionListener((evt) -> {
             config.removeAll();
-            switch ((String) Objects.requireNonNull(algorithmSelector.getSelectedItem())) {
-                case "Triangulation" -> config.add(new TriangulationConfigPane());
-                case "Greedy decomposition" -> config.add(new GreedyConfigPane());
-                case "Slab decomposition" -> config.add(new SlabConfigPane());
-                case "Kd decomposition" -> config.add(new KdConfigPane());
+            switch ((Decompositions) Objects.requireNonNull(algorithmSelector.getSelectedItem())) {
+                case Triangulation -> config.add(new TriangulationConfigPane());
+                case Greedy -> config.add(new GreedyConfigPane());
+                case Slab -> config.add(new SlabConfigPane());
+                case Kd -> config.add(new KdConfigPane());
                 default -> {
                 }
             }
@@ -81,52 +79,33 @@ public class DecompositionConfigFrame extends JFrame {
         setVisible(true);
     }
 
-    private abstract static class ConfigPanel extends JPanel {
+    public abstract static class ConfigPanel extends JPanel {
         public abstract DecompositionConfig config(Polygon polygon);
     }
 
-    private static class SlabConfigPane extends ConfigPanel {
-//        private final JTextField fieldX;
-//        private final JTextField fieldY;
-
-        public SlabConfigPane() {
-//            final var layout = new GridLayout(2, 2, 5, 5);
-//            setLayout(layout);
-//            final var labelX = new JLabel("Direction x: ");
-//            fieldX = new JTextField("0", 3);
-//            add(labelX);
-//            add(fieldX);
-//
-//            final var labelY = new JLabel("Direction y: ");
-//            fieldY = new JTextField("1", 3);
-//            add(labelY);
-//            add(fieldY);
-        }
+    public static class SlabConfigPane extends ConfigPanel {
 
         @Override
         public DecompositionConfig.SlabConfig config(Polygon polygon) {
-//            final var x = Float.parseFloat(fieldX.getText());
-//            final var y = Float.parseFloat(fieldY.getText());
-//            return new DecompositionConfig.SlabConfig(new PVector(x, y), polygon);
             return new DecompositionConfig.SlabConfig(new PVector(0, 1), polygon);
         }
     }
 
-    private static class TriangulationConfigPane extends ConfigPanel {
+    public static class TriangulationConfigPane extends ConfigPanel {
         @Override
         public DecompositionConfig config(Polygon polygon) {
             return new DecompositionConfig.TriangulationConfig(polygon);
         }
     }
 
-    private static class KdConfigPane extends ConfigPanel {
+    public static class KdConfigPane extends ConfigPanel {
         @Override
         public DecompositionConfig config(Polygon polygon) {
             return new DecompositionConfig.KdConfig(polygon);
         }
     }
 
-    private static class GreedyConfigPane extends ConfigPanel {
+    public static class GreedyConfigPane extends ConfigPanel {
         @Override
         public DecompositionConfig config(Polygon polygon) {
             return new DecompositionConfig.GreedyConfig(polygon);

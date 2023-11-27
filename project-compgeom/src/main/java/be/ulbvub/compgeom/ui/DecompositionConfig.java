@@ -1,15 +1,25 @@
 package be.ulbvub.compgeom.ui;
 
 import be.ulbvub.compgeom.Polygon;
+import be.ulbvub.compgeom.kd.KdDecomposition;
+import be.ulbvub.compgeom.slab.SlabDecomposition;
+import be.ulbvub.compgeom.triangles.TriangleDecomposition;
+import be.ulbvub.compgeom.utils.DoublyConnectedEdgeList;
 import processing.core.PVector;
 
 import java.util.Objects;
 
 public abstract class DecompositionConfig {
 
+    public abstract DoublyConnectedEdgeList decompose();
+
+    public abstract Polygon polygon();
+
+    public abstract void setPolygon(Polygon polygon);
+
     public static final class SlabConfig extends DecompositionConfig {
         private final PVector direction;
-        private final Polygon polygon;
+        private Polygon polygon;
 
         public SlabConfig(PVector direction, Polygon polygon) {
             this.direction = direction;
@@ -20,8 +30,14 @@ public abstract class DecompositionConfig {
             return direction;
         }
 
+        @Override
         public Polygon polygon() {
             return polygon;
+        }
+
+        @Override
+        public void setPolygon(Polygon polygon) {
+            this.polygon = polygon;
         }
 
         @Override
@@ -31,6 +47,14 @@ public abstract class DecompositionConfig {
             var that = (SlabConfig) obj;
             return Objects.equals(this.direction, that.direction) &&
                     Objects.equals(this.polygon, that.polygon);
+        }
+
+        @Override
+        public DoublyConnectedEdgeList decompose() {
+            final var algorithm = new SlabDecomposition(direction, polygon);
+            algorithm.buildEventQueue();
+            algorithm.run();
+            return algorithm.getDecomposition();
         }
 
         @Override
@@ -47,14 +71,20 @@ public abstract class DecompositionConfig {
     }
 
     public static final class TriangulationConfig extends DecompositionConfig {
-        private final Polygon polygon;
+        private Polygon polygon;
 
         public TriangulationConfig(Polygon polygon) {
             this.polygon = polygon;
         }
 
+        @Override
         public Polygon polygon() {
             return polygon;
+        }
+
+        @Override
+        public void setPolygon(Polygon polygon) {
+            this.polygon = polygon;
         }
 
         @Override
@@ -75,10 +105,15 @@ public abstract class DecompositionConfig {
             return "TriangulationConfig[" +
                     "polygon=" + polygon + ']';
         }
+
+        @Override
+        public DoublyConnectedEdgeList decompose() {
+            return TriangleDecomposition.decompose(polygon, false);
+        }
     }
 
     public static final class KdConfig extends DecompositionConfig {
-        private final Polygon polygon;
+        private Polygon polygon;
 
         public KdConfig(Polygon polygon) {
             this.polygon = polygon;
@@ -86,6 +121,11 @@ public abstract class DecompositionConfig {
 
         public Polygon polygon() {
             return polygon;
+        }
+
+        @Override
+        public void setPolygon(Polygon polygon) {
+            this.polygon = polygon;
         }
 
         @Override
@@ -107,17 +147,34 @@ public abstract class DecompositionConfig {
                     "polygon=" + polygon + ']';
         }
 
+        @Override
+        public DoublyConnectedEdgeList decompose() {
+            final var algorithm = new KdDecomposition(polygon);
+            algorithm.run();
+            return algorithm.getDecomposition();
+        }
     }
 
     public static final class GreedyConfig extends DecompositionConfig {
-        private final Polygon polygon;
+        private Polygon polygon;
 
         public GreedyConfig(Polygon polygon) {
             this.polygon = polygon;
         }
 
+        @Override
+        public DoublyConnectedEdgeList decompose() {
+            return TriangleDecomposition.decompose(polygon, true);
+        }
+
+        @Override
         public Polygon polygon() {
             return polygon;
+        }
+
+        @Override
+        public void setPolygon(Polygon polygon) {
+            this.polygon = polygon;
         }
 
         @Override
@@ -140,6 +197,6 @@ public abstract class DecompositionConfig {
         }
 
 
-        }
+    }
 
 }

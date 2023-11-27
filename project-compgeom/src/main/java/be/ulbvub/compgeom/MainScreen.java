@@ -1,8 +1,5 @@
 package be.ulbvub.compgeom;
 
-import be.ulbvub.compgeom.kd.KdDecomposition;
-import be.ulbvub.compgeom.slab.SlabDecomposition;
-import be.ulbvub.compgeom.triangles.TriangleDecomposition;
 import be.ulbvub.compgeom.ui.*;
 import be.ulbvub.compgeom.utils.DoublyConnectedEdgeList;
 import be.ulbvub.compgeom.utils.PolygonReader;
@@ -21,7 +18,7 @@ public class MainScreen extends PApplet {
     private Button btnSave;
     private Button btnOpen;
     private Button btnDecompose;
-    private Button btnExplain;
+    private Button btnMinkowski;
     private Button btnReset;
     private Button btnToggleDCEL;
 
@@ -38,11 +35,6 @@ public class MainScreen extends PApplet {
     @Override
     public void setup() {
         polygonRegion = new PointDrawRegion();
-//        polygonRegion.setListener((newPoint, polygon) -> {
-//            if (polygon.points().size() > 3) {
-//                dcel = TriangleDecomposition.triangulateYMonotonePolygon(polygonRegion.getPolygon());
-//            }
-//        });
 
         btnSave = new Button("Save", new PVector(0, 0), new PVector(50, 20));
         btnSave.setListener((evt) -> {
@@ -68,63 +60,38 @@ public class MainScreen extends PApplet {
             frame.open();
             frame.setListener((config) -> {
                 showDCEL = true;
-                if (config instanceof DecompositionConfig.TriangulationConfig c) {
-                    if (c.polygon().points().size() > 3) {
-                        dcel = TriangleDecomposition.triangulatePolygon(polygonRegion.getPolygon());
-                        JOptionPane.showMessageDialog(frame, "Decomposition complete");
-                    } else {
-                        JOptionPane.showMessageDialog(
-                                frame,
-                                "Not enough vertices to successfully do a decomposition",
-                                "Decomposition failed",
-                                JOptionPane.ERROR_MESSAGE);
-                    }
-                } else if (config instanceof DecompositionConfig.GreedyConfig c) {
-                    if (c.polygon().points().size() > 3) {
-                        dcel = TriangleDecomposition.decompose(((DecompositionConfig.GreedyConfig) config).polygon(), true);
-                        JOptionPane.showMessageDialog(frame, "Decomposition complete");
-                    } else {
-                        JOptionPane.showMessageDialog(
-                                frame,
-                                "Not enough vertices to successfully do a decomposition",
-                                "Decomposition failed",
-                                JOptionPane.ERROR_MESSAGE);
-                    }
-                } else if (config instanceof DecompositionConfig.SlabConfig c) {
-                    if (c.polygon().points().size() > 3) {
-                        final var algorithm = new SlabDecomposition(c.direction(), c.polygon());
-                        algorithm.buildEventQueue();
-                        algorithm.run();
-                        dcel = algorithm.getDecomposition();
-                        JOptionPane.showMessageDialog(frame, "Decomposition complete");
-                    } else {
-                        JOptionPane.showMessageDialog(
-                                frame,
-                                "Not enough vertices to successfully do a decomposition",
-                                "Decomposition failed",
-                                JOptionPane.ERROR_MESSAGE);
-                    }
-                } else if (config instanceof DecompositionConfig.KdConfig c) {
-                    if (c.polygon().points().size() > 3) {
-                        final var algorithm = new KdDecomposition(polygonRegion.getPolygon());
-                        algorithm.run();
-                        dcel = algorithm.getDecomposition();
-                        JOptionPane.showMessageDialog(frame, "Decomposition complete");
-                    } else {
-                        JOptionPane.showMessageDialog(
-                                frame,
-                                "Not enough vertices to successfully do a decomposition",
-                                "Decomposition failed",
-                                JOptionPane.ERROR_MESSAGE);
-                    }
+                if (config.polygon().points().size() > 3) {
+                    dcel = config.decompose();
+                    JOptionPane.showMessageDialog(frame, "Decomposition complete");
+                } else {
+                    JOptionPane.showMessageDialog(
+                            frame,
+                            "Not enough vertices to successfully do a decomposition",
+                            "Decomposition failed",
+                            JOptionPane.ERROR_MESSAGE);
                 }
             });
             System.out.println("Decomposing polygon");
         });
 
-        btnExplain = new Button("Explain", new PVector(0, 0), new PVector(60, 20));
-        btnExplain.setListener((evt) -> {
-            System.out.println("Explain decomposition algorithm (tutorial part)");
+        btnMinkowski = new Button("Minkowski", new PVector(0, 0), new PVector(90, 20));
+        btnMinkowski.setListener((evt) -> {
+            final var frame = new MinkowskiConfigFrame(polygonRegion.getPolygon());
+            frame.open();
+            frame.setListener((config) -> {
+                showDCEL = true;
+                if (config.a().points().size() > 3 && config.b().points().size() >= 3) {
+                    dcel = config.calculate();
+                    JOptionPane.showMessageDialog(frame, "Minkowski sum complete");
+                } else {
+                    JOptionPane.showMessageDialog(
+                            frame,
+                            "Not enough vertices to successfully do a Minkowski sum",
+                            "Minkowski sum failed",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+                System.out.println("Calculating minkowski sum with config: " + config);
+            });
         });
 
         btnReset = new Button("Reset", new PVector(0, 0), new PVector(60, 20));
@@ -153,7 +120,7 @@ public class MainScreen extends PApplet {
                             .draw((ctx1) -> btnSave.draw(ctx1))
                             .draw((ctx2) -> btnOpen.draw(ctx2))
                             .draw((ctx3) -> btnDecompose.draw(ctx3))
-//                            .draw((ctx4) -> btnExplain.draw(ctx4))
+                            .draw((ctx4) -> btnMinkowski.draw(ctx4))
                             .draw((ctx5) -> btnReset.draw(ctx5))
                             .draw((ctx6) -> btnToggleDCEL.draw(ctx6));
                 })
