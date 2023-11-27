@@ -1,14 +1,18 @@
 package be.ulbvub.compgeom.minkowski;
 
-import be.ulbvub.compgeom.utils.DCVertex;
-import be.ulbvub.compgeom.utils.DoublyConnectedEdgeList;
-import be.ulbvub.compgeom.utils.TurnDirection;
+import be.ulbvub.compgeom.ui.DrawContext;
+import be.ulbvub.compgeom.ui.Drawable;
+import be.ulbvub.compgeom.utils.*;
+import processing.core.PConstants;
 import processing.core.PVector;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Random;
 
-public class MinkowskiSum {
+public class MinkowskiSum implements Drawable {
+
+    ArrayList<DoublyConnectedEdgeList> convoluted = new ArrayList<>();
 
     /*
     Minkowski sum of convex polygons, based on this article: https://cp-algorithms.com/geometry/minkowski.html
@@ -26,12 +30,16 @@ public class MinkowskiSum {
         Collections.rotate(vertices, pos);
     }
 
-    public static DoublyConnectedEdgeList minkowski(DoublyConnectedEdgeList convex1, DoublyConnectedEdgeList convex2){
-
+    public static DoublyConnectedEdgeList minkowski(DoublyConnectedEdgeList convex1, DoublyConnectedEdgeList convex2) {
         ArrayList<DCVertex> vertices1 = (ArrayList<DCVertex>) convex1.getVertices().clone();
+        ArrayList<DCVertex> vertices2 = (ArrayList<DCVertex>) convex2.getVertices().clone();
+        return minkowski(vertices1, vertices2);
+    }
+
+    public static DoublyConnectedEdgeList minkowski(ArrayList<DCVertex> vertices1, ArrayList<DCVertex> vertices2) {
+
         reorder(vertices1);
 
-        ArrayList<DCVertex> vertices2 = (ArrayList<DCVertex>) convex2.getVertices().clone();
         reorder(vertices2);
 
         int n1 = vertices1.size();
@@ -55,6 +63,37 @@ public class MinkowskiSum {
             }
         }
         return new DoublyConnectedEdgeList(result);
+    }
+
+    public MinkowskiSum(DoublyConnectedEdgeList decomposition, DoublyConnectedEdgeList convexShape){
+        ArrayList<DCVertex> verticesConvex = (ArrayList<DCVertex>) convexShape.getVertices().clone();
+        for(DCFace face : decomposition.getFaces()){
+            ArrayList<DCVertex> verticesFace = decomposition.getVerticesOfFace(face);
+            convoluted.add(minkowski(verticesFace, verticesConvex));
+        }
+    }
+
+    @Override
+    public void draw(DrawContext context) {
+        context.applyStyle();
+        final var applet = context.applet();
+
+        Random rand = new Random();
+        int[] color = {rand.nextInt(50, 200), rand.nextInt(50, 200), rand.nextInt(50, 200)};
+        for (DoublyConnectedEdgeList edgeList : convoluted) {
+            DCFace face = edgeList.getFaces().get(0);//should have on and only one face
+            rand.setSeed(face.hashCode());
+            applet.fill(color[0], color[1], color[2]);
+            applet.beginShape();
+            int i = 0;
+            for (DCVertex vertex : edgeList.getVerticesOfFace(face)) {
+                float x = vertex.getPoint().x;
+                float y = vertex.getPoint().y;
+                applet.vertex(x, y);
+                i++;
+            }
+            applet.endShape(PConstants.CLOSE);
+        }
     }
 
 

@@ -374,8 +374,6 @@ public class TriangleDecomposition {
             if(Math.min(c.x, d.x) >= Math.max(e.x, f.x))
                 return 1;
 
-
-
             ArrayList<Float> xValues = new ArrayList<>(){
                 {
                     add(c.x);

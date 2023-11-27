@@ -304,12 +304,10 @@ public class DoublyConnectedEdgeList implements Drawable {
             rand.setSeed(face.hashCode());
             applet.fill(rand.nextInt(50, 200), rand.nextInt(50, 200), rand.nextInt(50, 200));
             applet.beginShape();
-            int i = 0;
             for (DCVertex vertex : this.getVerticesOfFace(face)) {
                 float x = vertex.getPoint().x;
                 float y = vertex.getPoint().y;
                 applet.vertex(x, y);
-                i++;
             }
             applet.endShape(PConstants.CLOSE);
         }
