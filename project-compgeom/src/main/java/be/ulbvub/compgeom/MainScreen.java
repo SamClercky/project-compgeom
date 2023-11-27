@@ -14,6 +14,7 @@ public class MainScreen extends PApplet {
     private boolean showDCEL = false;
     private PointDrawRegion polygonRegion;
     private DoublyConnectedEdgeList dcel;
+    private Polygon minkowskiSecondShape;
     private MouseClickEvent mouseClicked = null;
     private Button btnSave;
     private Button btnOpen;
@@ -32,6 +33,13 @@ public class MainScreen extends PApplet {
         size(800, 640, P2D);
     }
 
+    private void resetAll() {
+        dcel = null;
+        minkowskiSecondShape = null;
+        showDCEL = false;
+        polygonRegion.setPolygon(new Polygon(new ArrayList<>()));
+    }
+
     @Override
     public void setup() {
         polygonRegion = new PointDrawRegion();
@@ -47,11 +55,12 @@ public class MainScreen extends PApplet {
         btnOpen = new Button("Open", new PVector(0, 0), new PVector(50, 20));
         btnOpen.setListener((evt) -> {
             System.out.println("Open file...");
+
+            resetAll();
+
             final var reader = new PolygonReader();
             reader.openFileDialog();
             polygonRegion.setPolygon(reader.getPolygon());
-            dcel = null;
-            showDCEL = false;
         });
 
         btnDecompose = new Button("Decompose", new PVector(0, 0), new PVector(90, 20));
@@ -81,6 +90,7 @@ public class MainScreen extends PApplet {
             frame.setListener((config) -> {
                 showDCEL = true;
                 if (config.a().points().size() > 3 && config.b().points().size() >= 3) {
+                    minkowskiSecondShape = config.b();
                     dcel = config.calculate();
                     JOptionPane.showMessageDialog(frame, "Minkowski sum complete");
                 } else {
@@ -96,9 +106,7 @@ public class MainScreen extends PApplet {
 
         btnReset = new Button("Reset", new PVector(0, 0), new PVector(60, 20));
         btnReset.setListener((evt) -> {
-            polygonRegion.setPolygon(new Polygon(new ArrayList<>()));
-            dcel = null;
-            showDCEL = false;
+            resetAll();
         });
 
         btnToggleDCEL = new Button("Toggle DCEL", new PVector(0, 0), new PVector(90, 20));
@@ -132,6 +140,10 @@ public class MainScreen extends PApplet {
                                     dcel.draw(ctx);
                                 else
                                     polygonRegion.draw(ctx);
+
+                                if (minkowskiSecondShape != null) {
+                                    minkowskiSecondShape.draw(ctx1);
+                                }
                             }).draw((ctx2) -> {
                                 // Draw statistics
                                 final var applet = ctx2.applet();
