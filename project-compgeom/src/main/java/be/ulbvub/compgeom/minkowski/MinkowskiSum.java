@@ -27,7 +27,7 @@ public class MinkowskiSum implements Drawable, CalculationResult {
                 pos = i;
             }
         }
-        Collections.rotate(vertices, pos);
+        Collections.rotate(vertices, -pos);
     }
 
     public static DoublyConnectedEdgeList minkowski(DoublyConnectedEdgeList convex1, DoublyConnectedEdgeList convex2) {
@@ -54,11 +54,11 @@ public class MinkowskiSum implements Drawable, CalculationResult {
             result.add(sumPoint);
             PVector edge1 = PVector.sub(vertices1.get((i+1)%n1).getPoint(), point1);
             PVector edge2 = PVector.sub(vertices2.get((j+1)%n2).getPoint(), point2);
-            TurnDirection crossProduct = TurnDirection.orientation(edge1, new PVector(0,0,0), edge2);
-            if(crossProduct != TurnDirection.LEFT && i < n1){
+            float crossProduct = TurnDirection.orientationRaw(new PVector(0,0,0),edge2, PVector.add(edge1,edge2));
+            if(crossProduct >= 0 && i < n1){
                 ++i;
             }
-            if(crossProduct != TurnDirection.RIGHT && j < n2){
+            if(crossProduct <= 0 && j < n2){
                 ++j;
             }
         }
@@ -79,18 +79,16 @@ public class MinkowskiSum implements Drawable, CalculationResult {
         final var applet = context.applet();
 
         Random rand = new Random();
-        int[] color = {rand.nextInt(50, 200), rand.nextInt(50, 200), rand.nextInt(50, 200)};
+        int[] color = {50, 200, 50};
         for (DoublyConnectedEdgeList edgeList : convoluted) {
             DCFace face = edgeList.getFaces().get(0);//should have on and only one face
             rand.setSeed(face.hashCode());
-            applet.fill(color[0], color[1], color[2]);
+            applet.fill(color[0], color[1], color[2],100f);
             applet.beginShape();
-            int i = 0;
             for (DCVertex vertex : edgeList.getVerticesOfFace(face)) {
                 float x = vertex.getPoint().x;
                 float y = vertex.getPoint().y;
                 applet.vertex(x, y);
-                i++;
             }
             applet.endShape(PConstants.CLOSE);
         }
