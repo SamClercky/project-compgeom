@@ -5,6 +5,7 @@ import processing.core.PVector;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -12,6 +13,75 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class PolygonReader {
+
+    public enum PrefabPolygons {
+        Curl("Curl", "curl.poly"),
+        CurlInverted("Inverted Curl", "curl-inverted.poly"),
+        Indented("Indented", "indented.poly"),
+        IndentedHorizontal("Horizontal Indented", "indented-horizontal.poly"),
+        SplitJoin("Split Join", "internal-split-join.poly"),
+        Saw("Saw", "zaag.poly");
+
+        private String fileName;
+        private String name;
+
+        PrefabPolygons(final String name, final String fileName) {
+            this.name = name;
+            this.fileName = fileName;
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
+
+        public File getFile() {
+            return new File(getClass().getClassLoader().getResource(fileName).getFile());
+        }
+    }
+
+    private class PrefabPolygonFrame extends JDialog {
+        public PrefabPolygonFrame(JFrame parent) {
+            super(parent, true);
+
+            setLayout(new BorderLayout());
+            setTitle("Select prefab polygon");
+
+            final var contentPane = new JPanel();
+            contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.PAGE_AXIS));
+            add(contentPane, BorderLayout.CENTER);
+
+            final var selector = new JComboBox<>(PrefabPolygons.values());
+            selector.setSelectedIndex(0);
+            contentPane.add(selector);
+
+            final var btnConfirm = new JButton("Open");
+            btnConfirm.addActionListener((evt) -> {
+                try {
+                    readFile(((PrefabPolygons) selector.getSelectedItem()).getFile());
+                } catch (IOException e) {
+                    System.err.println("Could not open prefab polygon: " + selector.getSelectedItem());
+                }
+
+                this.dispose();
+            });
+            final var btnCancel = new JButton("Cancel");
+            btnCancel.addActionListener((evt) -> {
+                this.dispose();
+            });
+
+            final var paneBtn = new JPanel();
+            paneBtn.setLayout(new BoxLayout(paneBtn, BoxLayout.LINE_AXIS));
+            paneBtn.add(btnConfirm);
+            paneBtn.add(btnCancel);
+
+            contentPane.add(paneBtn);
+
+            pack();
+            setVisible(true);
+        }
+    }
+
     private static File lastRead;
     private final ArrayList<PVector> polygon;
 
@@ -21,6 +91,10 @@ public class PolygonReader {
 
     public Polygon getPolygon() {
         return new Polygon(polygon);
+    }
+
+    public void openPrefabDialog() {
+        new PrefabPolygonFrame(null);
     }
 
     public void openFileDialog() {

@@ -2,7 +2,6 @@ package be.ulbvub.compgeom;
 
 import be.ulbvub.compgeom.ui.*;
 import be.ulbvub.compgeom.utils.CalculationResult;
-import be.ulbvub.compgeom.utils.DoublyConnectedEdgeList;
 import be.ulbvub.compgeom.utils.PolygonReader;
 import be.ulbvub.compgeom.utils.PolygonWriter;
 import processing.core.PApplet;
@@ -19,6 +18,7 @@ public class MainScreen extends PApplet {
     private MouseClickEvent mouseClicked = null;
     private Button btnSave;
     private Button btnOpen;
+    private Button btnOpenPolygon;
     private Button btnDecompose;
     private Button btnMinkowski;
     private Button btnReset;
@@ -43,6 +43,8 @@ public class MainScreen extends PApplet {
 
     @Override
     public void setup() {
+        surface.setTitle("Simple Polygon Decomposition");
+
         polygonRegion = new PointDrawRegion();
 
         btnSave = new Button("Save", new PVector(0, 0), new PVector(50, 20));
@@ -61,6 +63,17 @@ public class MainScreen extends PApplet {
 
             final var reader = new PolygonReader();
             reader.openFileDialog();
+            polygonRegion.setPolygon(reader.getPolygon());
+        });
+
+        btnOpenPolygon = new Button("Open prefab", new PVector(0, 0), new PVector(100, 20));
+        btnOpenPolygon.setListener((evt) -> {
+            System.out.println("Open prefab");
+
+            resetAll();
+
+            final var reader = new PolygonReader();
+            reader.openPrefabDialog();
             polygonRegion.setPolygon(reader.getPolygon());
         });
 
@@ -128,10 +141,11 @@ public class MainScreen extends PApplet {
                     VBox.with(ctx)
                             .draw((ctx1) -> btnSave.draw(ctx1))
                             .draw((ctx2) -> btnOpen.draw(ctx2))
-                            .draw((ctx3) -> btnDecompose.draw(ctx3))
-                            .draw((ctx4) -> btnMinkowski.draw(ctx4))
-                            .draw((ctx5) -> btnReset.draw(ctx5))
-                            .draw((ctx6) -> btnToggleDCEL.draw(ctx6));
+                            .draw((ctx3) -> btnOpenPolygon.draw(ctx3))
+                            .draw((ctx4) -> btnDecompose.draw(ctx4))
+                            .draw((ctx5) -> btnMinkowski.draw(ctx5))
+                            .draw((ctx6) -> btnReset.draw(ctx6))
+                            .draw((ctx7) -> btnToggleDCEL.draw(ctx7));
                 })
                 .draw((ctx) -> {
                     ctx.fill(color(255));
