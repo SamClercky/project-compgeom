@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 
-public class MinkowskiSum implements Drawable {
+public class MinkowskiSum implements Drawable, CalculationResult {
 
     ArrayList<DoublyConnectedEdgeList> convoluted = new ArrayList<>();
 
@@ -97,4 +97,30 @@ public class MinkowskiSum implements Drawable {
     }
 
 
+    @Override
+    public int getFaceCount() {
+        int count = 0;
+        for (var dcel: convoluted) {
+            count += dcel.getFaceCount();
+        }
+        return count;
+    }
+
+    @Override
+    public int getVertexCount() {
+        int count = 0;
+        for (var dcel: convoluted) {
+            count += dcel.getVertexCount();
+        }
+        return count;
+    }
+
+    @Override
+    public int getHalfEdgeCount() {
+        int count = 0;
+        for (var dcel: convoluted) {
+            count += dcel.getHalfEdgeCount();
+        }
+        return count;
+    }
 }

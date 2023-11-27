@@ -6,12 +6,11 @@ import be.ulbvub.compgeom.utils.DoublyConnectedEdgeList;
 
 public record MinkowskiConfig(Polygon a, Polygon b, DecompositionConfig dConfig) {
 
-    public DoublyConnectedEdgeList calculate() {
+    public MinkowskiSum calculate() {
         dConfig.setPolygon(a);
         final var dA = dConfig.decompose();
-        dConfig.setPolygon(b);
-        final var dB = dConfig.decompose();
+        final var dB = new DoublyConnectedEdgeList(b); // Shape B is assumed to be always convex
 
-        return MinkowskiSum.minkowski(dA, dB);
+        return new MinkowskiSum(dA, dB);
     }
 }

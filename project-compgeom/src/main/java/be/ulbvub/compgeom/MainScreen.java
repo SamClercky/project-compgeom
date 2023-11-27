@@ -1,6 +1,7 @@
 package be.ulbvub.compgeom;
 
 import be.ulbvub.compgeom.ui.*;
+import be.ulbvub.compgeom.utils.CalculationResult;
 import be.ulbvub.compgeom.utils.DoublyConnectedEdgeList;
 import be.ulbvub.compgeom.utils.PolygonReader;
 import be.ulbvub.compgeom.utils.PolygonWriter;
@@ -13,7 +14,7 @@ import java.util.ArrayList;
 public class MainScreen extends PApplet {
     private boolean showDCEL = false;
     private PointDrawRegion polygonRegion;
-    private DoublyConnectedEdgeList dcel;
+    private CalculationResult dcel;
     private Polygon minkowskiSecondShape;
     private MouseClickEvent mouseClicked = null;
     private Button btnSave;
@@ -153,9 +154,9 @@ public class MainScreen extends PApplet {
                                 ctx2.applyTextStyle();
                                 final var mousePosition = ctx.region().toLocalPoint(ctx.mousePosition());
                                 applet.text("Number of vertices: " + polygonRegion.getPolygon().points().size() + "\n" +
-                                                "Number of faces in decomposition: " + (dcel != null ? dcel.getFaces().size() : 0) + "\n" +
-                                                "Number of vertices in decomposition: " + (dcel != null ? dcel.getVertices().size() : 0) + "\n" +
-                                                "Number of edges in decomposition: " + (dcel != null ? dcel.getEdges().size() : 0) + "\n" +
+                                                "Number of faces in decomposition: " + (dcel != null ? dcel.getFaceCount() : 0) + "\n" +
+                                                "Number of vertices in decomposition: " + (dcel != null ? dcel.getVertexCount() : 0) + "\n" +
+                                                "Number of edges in decomposition: " + (dcel != null ? dcel.getHalfEdgeCount() : 0) + "\n" +
                                                 "X: " + mousePosition.x + ", Y: " + mousePosition.y,
                                         pos.x, pos.y);
                             });

@@ -9,7 +9,7 @@ import processing.core.PVector;
 
 import java.util.*;
 
-public class DoublyConnectedEdgeList implements Drawable {
+public class DoublyConnectedEdgeList implements Drawable, CalculationResult {
 
     ArrayList<DCHalfEdge> edges = new ArrayList<DCHalfEdge>();
     ArrayList<DCVertex> vertices = new ArrayList<DCVertex>();
@@ -350,5 +350,20 @@ public class DoublyConnectedEdgeList implements Drawable {
 
     public boolean hasReflex(){
         return !reflexVertices.isEmpty();
+    }
+
+    @Override
+    public int getFaceCount() {
+        return faces.size();
+    }
+
+    @Override
+    public int getVertexCount() {
+        return vertices.size();
+    }
+
+    @Override
+    public int getHalfEdgeCount() {
+        return edges.size();
     }
 }
