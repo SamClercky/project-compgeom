@@ -42,7 +42,6 @@ class KdDecompositionTest extends DecompositionTest {
         assertValidDecomposition(rotatedSquare, rotatedSquareResult);
     }
 
-    // TESTS ARE WRONG -> DUPLICATE POINTS WRONGLY COUNTED
     @Test
     void decomposeIdents() throws IOException {
         final var polygon = readPolygon("indented.poly");

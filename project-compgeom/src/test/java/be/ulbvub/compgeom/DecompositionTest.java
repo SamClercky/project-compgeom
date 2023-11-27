@@ -73,8 +73,8 @@ public abstract class DecompositionTest {
         }
     }
 
-    public Polygon readPolygon(String fileName) throws IOException {
-        final var polygonResource = getClass().getClassLoader().getResource(fileName).getFile();
+    public static Polygon readPolygon(String fileName) throws IOException {
+        final var polygonResource = DecompositionTest.class.getClassLoader().getResource(fileName).getFile();
         final var reader = new PolygonReader();
         reader.readFile(new File(polygonResource));
         return reader.getPolygon();
