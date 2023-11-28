@@ -96,7 +96,7 @@ class SimplePolygonTest {
 	}
 
 	@Test
-	void given_2_points_of_P_then_is_inside_returns_correct_value() {
+	void given_2_points_of_P_then_isInside_returns_correct_value() {
 		//Check inside is true
 		assertTrue(flagPolygon.isInside(new PVector(1, 1), new PVector(2, 2)));
 		assertTrue(flagPolygon.isInside(new PVector(2, 2), new PVector(1, 1)));
@@ -115,9 +115,6 @@ class SimplePolygonTest {
 
 		assertTrue(bigNonConvexShape.isInside(new PVector(9, 7), new PVector(6, 12)));
 		assertTrue(bigNonConvexShape.isInside(new PVector(6, 12), new PVector(9, 7)));
-
-		//Check that isInside throws when dealing with non-existing points of P
-		assertThrows(IllegalArgumentException.class, () -> flagPolygon.isInside(new PVector(15, -4), new PVector(2, 2)));
 	}
 
 	@Test
@@ -129,15 +126,27 @@ class SimplePolygonTest {
 	}
 
 	@Test
-	void intersection_test() {
-		final PVector p1 = new PVector(3, 11);
-		final PVector q1 = new PVector(6, 2);
-		final PVector p2 = new PVector(0, 8);
-		final PVector q2 = new PVector(4, 8);
-		final PVector q22 = new PVector(3.99f, 8);
+	void given_1_point_of_P_and_another_point_not_in_P_then_isInside_returns_correct_value() {
+		//Check inside is true
+		assertTrue(flagPolygon.isInside(new PVector(0, 0), new PVector(1, 0.5f)));
+		assertTrue(flagPolygon.isInside(new PVector(0, 0), new PVector(1.5f, 1)));
+		assertTrue(flagPolygon.isInside(new PVector(1, 1), new PVector(1, 2)));
 
-		assertTrue(SimplePolygon.doIntersect(p1, q1, p2, q2));
-		assertFalse(SimplePolygon.doIntersect(p1, q1, p2, q22));
+		assertFalse(flagPolygon.isInside(new PVector(0, 0), new PVector(-1, 1)));
+		assertFalse(flagPolygon.isInside(new PVector(0, 0), new PVector(2, 5f)));
+		assertFalse(flagPolygon.isInside(new PVector(0, 0), new PVector(1, 1.5f)));
+	}
+
+	@Test
+	void given_a_point_isInside_returns_true_if_given_point_is_inside_P() {
+		assertTrue(flagPolygon.isInside(new PVector(0, 0)));
+		assertTrue(flagPolygon.isInside(new PVector(0.5f, 0.5f)));
+		assertTrue(flagPolygon.isInside(new PVector(1.5f, 1)));
+		assertTrue(flagPolygon.isInside(new PVector(1, 0)));
+
+		assertFalse(flagPolygon.isInside(new PVector(-1, 1)));
+		assertFalse(flagPolygon.isInside(new PVector(3, 1)));
+		assertFalse(flagPolygon.isInside(new PVector(-1, 0)));
 	}
 
 }

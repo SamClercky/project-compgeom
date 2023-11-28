@@ -233,28 +233,34 @@ public class PatternDetector {
 						);
 					}
 					//Check for intersections
+					//Check for M_ij
 					if(finalR_ij.get() != null && finalL_ji.get() != null) {
 						SimplePolygon.getIntersection(finalR_ij.get(), finalL_ji.get())
 								.ifPresent(intersection -> {
-									intersections.add(new IntersectionData(i, j, intersection,
-											polygon.isInside(i, intersection) && polygon.isInside(j, intersection)));
-									System.out.println("M_ij: " + intersection.toString());
+									final boolean flag = polygon.isInside(i, intersection) && polygon.isInside(intersection, j);
+
+									intersections.add(new IntersectionData(i, j, intersection, flag));
+									System.out.println("M_ij: " + intersections.get(intersections.size() - 1).toString());
 								});
 					}
+					//Check for M_jk
 					if(finalR_jk.get() != null && finalL_kj.get() != null) {
 						SimplePolygon.getIntersection(finalR_jk.get(), finalL_kj.get())
 								.ifPresent(intersection -> {
-									intersections.add(new IntersectionData(j, k, intersection,
-											polygon.isInside(j, intersection) && polygon.isInside(k, intersection)));
-									System.out.println("M_jk: " + intersection.toString());
+									final boolean flag = polygon.isInside(j, intersection) && polygon.isInside(intersection, k);
+
+									intersections.add(new IntersectionData(j, k, intersection, flag));
+									System.out.println("M_jk: " + intersections.get(intersections.size() - 1).toString());
 								});
 					}
+					//Check for M_ki
 					if(finalR_ki.get() != null && finalL_ik.get() != null) {
 						SimplePolygon.getIntersection(finalR_ki.get(), finalL_ik.get())
 								.ifPresent(intersection -> {
-									intersections.add(new IntersectionData(k, i, intersection,
-											polygon.isInside(k, intersection) && polygon.isInside(i, intersection)));
-									System.out.println("M_ki: " + intersection.toString());
+									final boolean flag = polygon.isInside(k, intersection) && polygon.isInside(intersection, i);
+
+									intersections.add(new IntersectionData(k, i, intersection, flag));
+									System.out.println("M_ki: " + intersections.get(intersections.size() - 1).toString());
 								});
 					}
 				}

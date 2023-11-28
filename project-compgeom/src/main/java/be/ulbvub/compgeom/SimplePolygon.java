@@ -4,6 +4,7 @@ import be.ulbvub.compgeom.chazelle.NotchFinder;
 import processing.core.PVector;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -188,6 +189,42 @@ public record SimplePolygon(List<PVector> points) {
 	}
 
 	/**
+	 * Check whether the point v is inside this polygon.
+	 *
+	 * @param v the point
+	 *
+	 * @return true if v is inside tis polygon
+	 */
+	public boolean isInside(final PVector v) {
+		if(points.contains(v)) {
+			return true;
+		}
+		final var vPrime = new PVector(v.x + 100_000, v.y);
+		final PVector[] ray = new PVector[] {v, vPrime};
+		int counter = 0;
+		int intersectionsWithP = 0;
+
+		for(final PVector[] edge : getEdges()) {
+			if(doIntersect(edge, ray)) {
+				//Check if co-linear
+				if(getTurnDirection(edge[0], v, edge[1]) == 0) {
+					return onSegment(edge[0], edge[1], v);
+				}
+				final Optional<PVector> intersection = getIntersection(edge, ray);
+
+				//If this evaluates to true, the counter will be incremented twice for the same coordinates
+				if(intersection.isPresent() && points.contains(intersection.get())) {
+					intersectionsWithP++;
+				}
+				counter++;
+			}
+		}
+
+		//Return true if the number of effective intersection is odd
+		return (counter - (intersectionsWithP / 2)) % 2 == 1;
+	}
+
+	/**
 	 * Check whether the segment a b, where both a and b are points of the polygon, is inside this polygon.
 	 *
 	 * @param a an endpoint
@@ -201,10 +238,31 @@ public record SimplePolygon(List<PVector> points) {
 		}
 		if(points.contains(a) && points.contains(b)) {
 			return isAtoBInside(a, b) && isAtoBInside(b, a);
-		} else if() {
+		} else if(points.contains(a) || points.contains(b)) {
+			final PVector v = points.contains(a) ? a : b;
+			final PVector m = points.contains(a) ? b : a;
+
+			//If m is not inside P, then vm cannot be inside P
+			if(!isInside(m)) {
+				return false;
+			}
+			//If m is inside P, check if vm has intersects with edges, excluding endpoints
+			for(final PVector[] edge : getEdges()) {
+				if(getIntersection(edge, new PVector[] {v, m})
+						//Check if the intersection coordinate is not a point of P nor the intersection occurs at m
+						.map(intersection -> !points.contains(intersection) && !intersection.equals(m))
+						//If no intersection found, then return false (i.e. no intersection found yet)
+						.orElse(false)) {
+
+					//Then ab (= vm) is not in P
+					return false;
+				}
+			}
+
+			return true;
 
 		} else {
-			throw new IllegalArgumentException("Both endpoints must be points of this polygon's instance");
+			throw new IllegalArgumentException("One of the endpoints must be points of this polygon's instance");
 		}
 	}
 
@@ -299,9 +357,24 @@ public record SimplePolygon(List<PVector> points) {
 		}
 	}
 
-	private static boolean onSegment(final PVector a, final PVector b, final PVector c) {
-		return b.x <= Math.max(a.x, c.x) && b.x >= Math.min(a.x, c.x) &&
-				b.y <= Math.max(a.y, c.y) && b.y >= Math.min(a.y, c.y);
+	/**
+	 * Check if the point v lies on the segment ab.
+	 *
+	 * @param a the edge endpoint
+	 * @param b the edge other endpoint
+	 * @param v the point to test
+	 *
+	 * @return true if v lies on [a, b]
+	 */
+	private static boolean onSegment(final PVector a, final PVector b, final PVector v) {
+		return v.x <= Math.max(a.x, b.x)
+				&& v.x >= Math.min(a.x, b.x)
+				&& v.y <= Math.max(a.y, b.y)
+				&& v.y >= Math.min(a.y, b.y);
+	}
+
+	private static boolean onSegment(final PVector l[], final PVector v) {
+		return onSegment(l[0], l[1], v);
 	}
 
 	public static boolean doIntersect(final PVector p1, final PVector q1, final PVector p2, final PVector q2) {
@@ -330,6 +403,10 @@ public record SimplePolygon(List<PVector> points) {
 		}
 
 		return false;
+	}
+
+	public static boolean doIntersect(final PVector[] l, final PVector[] s) {
+		return doIntersect(l[0], l[1], s[0], s[1]);
 	}
 
 	public static Optional<PVector> getIntersection(final PVector[] l, final PVector[] s) {
