@@ -3,7 +3,6 @@ package be.ulbvub.compgeom.ui;
 import javax.swing.*;
 
 public enum Decompositions {
-    None("None selected"),
     Triangulation("Triangulation"),
     Greedy("Greedy decomposition"),
     Slab("Slab decomposition"),

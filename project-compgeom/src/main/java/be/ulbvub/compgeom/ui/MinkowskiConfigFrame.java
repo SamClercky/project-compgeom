@@ -42,6 +42,7 @@ public class MinkowskiConfigFrame extends JFrame {
         });
 
         decomposeConfig = new JPanel();
+        decomposeConfig.add(new DecompositionConfigFrame.TriangulationConfigPane());
         contentPane.add(decomposeConfig);
 
         final var shapeSelector = Shapes.getCombobox();
@@ -59,6 +60,7 @@ public class MinkowskiConfigFrame extends JFrame {
         });
 
         shapeConfig = new JPanel();
+        shapeConfig.add(new RectanglePanel());
         contentPane.add(shapeConfig);
 
         final var btnConfirm = new JButton("Calculate");

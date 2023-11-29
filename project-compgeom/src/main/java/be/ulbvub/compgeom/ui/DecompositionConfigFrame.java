@@ -40,6 +40,7 @@ public class DecompositionConfigFrame extends JFrame {
         });
 
         config = new JPanel();
+        config.add(new TriangulationConfigPane());
         contentPane.add(config);
 
         final var btnConfirm = new JButton("Decompose");

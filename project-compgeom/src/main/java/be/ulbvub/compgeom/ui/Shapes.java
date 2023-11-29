@@ -3,7 +3,6 @@ package be.ulbvub.compgeom.ui;
 import javax.swing.*;
 
 public enum Shapes {
-    None("None selected"),
     Rectangle("Rectangle"),
     Circle("Circle"),
     Triangle("Triangle");
