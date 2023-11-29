@@ -39,9 +39,10 @@ public class PatternDetector {
 	 * @return the right segment (r_ij) or an empty optional if no notch exist between i and j
 	 */
 	private Optional<PVector[]> makeRight(final PVector from, final PVector to) {
+		System.out.println("Building r': " + from.toString() + "; " + to.toString());
 		boolean inRange = false;
 		PVector bestT = null;
-		double bestAngle = -1;
+		double bestAngle = Double.NEGATIVE_INFINITY;
 
 		for(final PVector t : notches) {
 			//Check whether the notches are between a and b
@@ -54,20 +55,25 @@ public class PatternDetector {
 			if(inRange && !equal) {
 				double angle = SimplePolygon.orientedAngle(t, from, to);
 				final int orientation = SimplePolygon.getTurnDirection(t, from, to);
+				System.out.println("Testing angle " + t.toString() + "; " + from.toString() + "; " + to.toString());
 
 				if(orientation != 0) {
 					angle *= orientation;
 				}
+				System.out.println("Angle: " + angle);
 				if(angle > bestAngle) {
+					System.out.println("Better");
 					bestAngle = angle;
 					bestT = t;
 				}
 			}
 		}
 		if(bestT == null) {
+			System.out.println("No notches between this pair of points");
 			return Optional.empty();
 		}
 
+		System.out.println("Returning (" + from.toString() + ", " + bestT.toString() + ")");
 		return Optional.of(new PVector[] {from, bestT});
 	}
 
@@ -80,9 +86,10 @@ public class PatternDetector {
 	 * @return the left segment (l_ik)
 	 */
 	private Optional<PVector[]> makeLeft(final PVector from, final PVector to) {
+		System.out.println("Building l': " + from.toString() + "; " + to.toString());
 		boolean inRange = false;
 		PVector bestT = null;
-		double bestAngle = -1;
+		double bestAngle = Double.NEGATIVE_INFINITY;
 
 		for(final PVector t : notches) {
 			//Check whether the notches are between a and b
@@ -95,25 +102,31 @@ public class PatternDetector {
 			if(inRange && !equal) {
 				double angle = SimplePolygon.orientedAngle(to, from, t);
 				final int orientation = SimplePolygon.getTurnDirection(to, from, t);
+				System.out.println("Testing angle " + to.toString() + "; " + from.toString() + "; " + t.toString());
 
 				if(orientation != 0) {
 					angle *= orientation;
 				}
+				System.out.println("Angle: " + angle);
 				if(angle > bestAngle) {
+					System.out.println("Better");
 					bestAngle = angle;
 					bestT = t;
 				}
 			}
 		}
 		if(bestT == null) {
+			System.out.println("No notches between this pair of points");
 			return Optional.empty();
 		}
 
+		System.out.println("Returning (" + from.toString() + ", " + bestT.toString() + ")");
 		return Optional.of(new PVector[] {from, bestT});
 	}
 
 	public void detectPatterns() {
 		buildData();
+		detectX2Pattern();
 		detectX3Pattern();
 	}
 
@@ -128,7 +141,10 @@ public class PatternDetector {
 					if(i == j || i == k || j == k) {
 						continue;
 					}
+					System.out.println("--------------------------------");
+					System.out.println("Working on triplet (i:" + i.toString() + ", j:" + j.toString() + ", k:" + k.toString() + ")");
 					final List<PVector> rangeV_i = polygon.getNotchRange(i, nP);
+					System.out.println("Notch range of i: " + rangeV_i.toString());
 					final List<PVector> rangeV_j = polygon.getNotchRange(j, nP);
 					final List<PVector> rangeV_k = polygon.getNotchRange(k, nP);
 					final AtomicReference<PVector[]> finalL_ik = new AtomicReference<>();
@@ -142,11 +158,14 @@ public class PatternDetector {
 					/*
 					 * Build v_i data
 					 */
-					if(rangeV_i.size() >= 2) {
+					if(!rangeV_i.isEmpty()) {
+						System.out.println("Making l_ik");
 						makeLeft(i, k).ifPresent(
 								l_ik -> {
 									final PVector[] l = {i, rangeV_i.get(0)};
+									System.out.println("l: " + Arrays.toString(l));
 									final PVector[] lPrime_ik = SimplePolygon.getTurnDirection(l_ik[1], l_ik[0], l[1]) > 0 ? l : l_ik;
+									System.out.println("final l': " + Arrays.toString(lPrime_ik));
 									finalL_ik.set(lPrime_ik);
 									final var data = new SegmentData(i, k, lPrime_ik);
 
@@ -156,6 +175,7 @@ public class PatternDetector {
 									}
 								}
 						);
+						System.out.println("Making r_ij");
 						makeRight(i, j).ifPresent(
 								r_ij -> {
 									final PVector[] r = {i, rangeV_i.get(rangeV_i.size()-1)};
@@ -173,7 +193,8 @@ public class PatternDetector {
 					/*
 					 * Build v_j data
 					 */
-					if(rangeV_j.size() >= 2) {
+					if(!rangeV_j.isEmpty()) {
+						System.out.println("Making l_ji");
 						makeLeft(j, i).ifPresent(
 								l_ji -> {
 									final PVector[] l = {j, rangeV_j.get(0)};
@@ -187,6 +208,7 @@ public class PatternDetector {
 									}
 								}
 						);
+						System.out.println("Making r_jk");
 						makeRight(j, k).ifPresent(
 								r_jk -> {
 									final PVector[] r = {j, rangeV_j.get(rangeV_j.size()-1)};
@@ -204,7 +226,8 @@ public class PatternDetector {
 					/*
 					 * Build v_k data
 					 */
-					if(rangeV_k.size() >= 2) {
+					if(!rangeV_k.isEmpty()) {
+						System.out.println("Making l_kj");
 						makeLeft(k, j).ifPresent(
 								l_kj -> {
 									final PVector[] l = {k, rangeV_k.get(0)};
@@ -218,6 +241,7 @@ public class PatternDetector {
 									}
 								}
 						);
+						System.out.println("Making r_ki");
 						makeRight(k, i).ifPresent(
 								r_ki -> {
 									final PVector[] r = {k, rangeV_k.get(rangeV_k.size()-1)};
@@ -263,6 +287,29 @@ public class PatternDetector {
 									System.out.println("M_ki: " + intersections.get(intersections.size() - 1).toString());
 								});
 					}
+				}
+			}
+		}
+	}
+
+	private void detectX2Pattern() {
+		for(final PVector i : notches) {
+			for (final PVector j : notches) {
+				final Optional<SegmentData> l_ij = leftSegments.stream()
+						.filter(data -> data.from.equals(i) && data.to.equals(j))
+						.findFirst();
+				final Optional<SegmentData> l_ji = leftSegments.stream()
+						.filter(data -> data.from.equals(j) && data.to.equals(i))
+						.findFirst();
+				final Optional<SegmentData> r_ij = rightSegments.stream()
+						.filter(data -> data.from.equals(i) && data.to.equals(j))
+						.findFirst();
+				final Optional<SegmentData> r_ji = rightSegments.stream()
+						.filter(data -> data.from.equals(j) && data.to.equals(i))
+						.findFirst();
+
+				if(l_ij.isPresent() && l_ji.isPresent() && r_ij.isPresent() && r_ji.isPresent()) {
+					System.out.println("X2 candidate: " + i.toString() + "; " + j.toString());
 				}
 			}
 		}
@@ -323,18 +370,18 @@ public class PatternDetector {
 	}
 
 	public void displaySegments() {
-		/*System.out.println("\n-===[ l' ]===-\n");
-		for(final var entrySet : leftSegments.entrySet()) {
-			System.out.println(Arrays.toString(entrySet.getKey()) + ": " + entrySet.getValue());
+		System.out.println("\n-===[ l' ]===-\n");
+		for(final var segmentData : leftSegments) {
+			System.out.println("l'_(" + segmentData.from + ")(" + segmentData.to + "): " + Arrays.toString(segmentData.segment));
 		}
 		System.out.println("\n-===[r']===-\n");
-		for(final var entrySet : rightSegments.entrySet()) {
-			System.out.println(Arrays.toString(entrySet.getKey()) + ": " + entrySet.getValue());
+		for(final var segmentData : rightSegments) {
+			System.out.println("r'_(" + segmentData.from + ")(" + segmentData.to + "): " + Arrays.toString(segmentData.segment));
 		}
 		System.out.println("\nINTERSECTIONS\n");
 		for(final IntersectionData intersectionData : intersections) {
 			System.out.println(intersectionData.toString());
-		}*/
+		}
 	}
 
 	private static class IntersectionData {

@@ -28,33 +28,22 @@ public class NotchFinder {
 	 * @return this
 	 */
 	public NotchFinder findNotches() {
-		//The first index acts as the last index for the last angle
-		PVector firstVertex = null;
-		final List<PVector> angleQueue = new ArrayList<>();
-
 		if(polygon.size() < 3) {
 			return this;
 		}
-		for(final PVector vertex : polygon.points()) {
-			angleQueue.add(vertex);
+		final int size = polygon.size();
 
-			if(firstVertex == null) {
-				firstVertex = vertex;
+		//Iterate for all points and get the edges surrounding each of them
+		for(int i = 0; i < size; i++) {
+			final PVector[] edge1 = new PVector[] {polygon.points().get(i == 0 ? size-1 : i-1),
+					polygon.points().get(i)};
+			final PVector[] edge2 = new PVector[] {polygon.points().get(i), polygon.points().get((i+1) % size)};
+
+			//Check for a left turn
+			if(SimplePolygon.getTurnDirection(edge1, edge2) > 0) {
+				//Put the middle point in the notches list
+				notches.add(polygon.points().get(i));
 			}
-			//Check if an angle must be checked
-			if(angleQueue.size() >= 3) {
-				//Check if it's a left turn
-				if(SimplePolygon.getTurnDirection(angleQueue.get(0), angleQueue.get(1), angleQueue.get(2)) > 0) {
-					//Put the middle point in the notches list
-					notches.add(angleQueue.get(1));
-				}
-				//Remove the tail, allowing for the next angle to be checked
-				angleQueue.remove(0);
-			}
-		}
-		if(SimplePolygon.getTurnDirection(angleQueue.get(0), angleQueue.get(1), firstVertex) > 0) {
-			//Put the middle point in the notches list
-			notches.add(angleQueue.get(1));
 		}
 
 		return this;
