@@ -296,9 +296,10 @@
     <p>
     Therefore, after choosing the decomposition algorithm, we have to compute the minkowski sum of two convex polygons.  <a href="https://cp-algorithms.com/geometry/minkowski.html">This article</a> explains everything we need to know about this subject. They also provide this illustration:
     </p>
+    
     <img alt="Visual" src="https://cp-algorithms.com/geometry/minkowski.gif">
     
-    A short explanation is the following:
+    
     <p>
     When both polygon are convex, the edges of their minkowki sum are the combined edges of both polygons, sorted by polar angles. Since in a convex polygon the edges are already sorted by polar angle, we can iterate simultaneously on both polygons edges and get the lower element at each iteration. To compare two edges we can use the orientation of (origin, edge1, edge1+edge2).
     </p>
@@ -308,6 +309,12 @@
      For the union part, since we do not use the Minkowski sum to computes other things like collisions, we do not have to implement it. We can just draw every minkowski subsum with transparency in order to help us understand the result.
      </p>   
 
+    For the example we took the slab decomposition of the saw pattern and calculate the minkowski sum with a small circle.
+    <img src="figures/slab-zaag.png">
+    <img src="figures/minkowski-slab-zaag.png">
+    <img src="figures/triangulation-curl-square.png">
+    The "tips" are rounded and we can see overlaps in every edges added by the decomposition. This demonstrate why the minkowski sum is used to find path between obstacles for a moving robot. The area of the sum would be an area where a round robot would hit the obstacle. The second example is the Minkowski sum of the triangulation of a curved shape and a small square. We selected simple forms and decompositions because otherwise it becomes quite difficult to comprehend the result of the minkowski sum.
+    
     <h3>GUI</h3>
     <small><strong>By Andreas Declerck</strong></small>
 
@@ -357,7 +364,7 @@
             <td>Triangle</td>
             <td>30</td>
             <td>30</td>
-            <td>18</td>
+            <td>28</td>
             <td>114</td>
         </tr>
         <tr>
@@ -486,12 +493,9 @@
         }
     </script>
 
-    <h2>What still needs to be done</h2>
+    <h2>Conclusion</h2>
 
-    <ul>
-        <li>Chazelle P-time decomposition</li>
-        <li>Minkowski sums</li>
-    </ul>
+    The triangulation algorithm is composed of less vertices/edges than other decompositions, but the result looks less natural than slab decomposition for example. The greedy mode doesn't provide much improvements on the test shown but reduces the number of edges most of the time in other polygons. Slab and KD decompositions create less faces and so will be more efficient for some use case like calculating minkowski sums (on the union step).
 
     <h2>References</h2>
 
