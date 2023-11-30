@@ -138,13 +138,13 @@ public class DoublyConnectedEdgeList implements Drawable, CalculationResult {
      * <p>
      * Go from:
      * <pre>
-     * <--- edge ---
-     * --- twin --->
+     * ---- edge -->
+     * <--- twin ---
      * </pre>
      * to:
      * <pre>
-     * <--- exEdge --- vertex <--- edge   ---
-     * --- twin   ---> vertex ---> exTwin ---
+     * <--- edge  --- vertex --- exEdge -->
+     * <--- exTwin --- vertex <--- Twin  ---
      * </pre>
      *
      * @param edge     The edge on which to insert the new vertex. Should already be present in the DCEL

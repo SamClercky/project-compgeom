@@ -39,12 +39,10 @@ public class MinkowskiSum implements Drawable, CalculationResult {
     public static DoublyConnectedEdgeList minkowski(ArrayList<DCVertex> vertices1, ArrayList<DCVertex> vertices2) {
 
         reorder(vertices1);
-
         reorder(vertices2);
 
         int n1 = vertices1.size();
         int n2 = vertices2.size();
-
         int i = 0,j = 0;
         ArrayList<PVector> result = new ArrayList<>();
         while(i < n1 || j < n2){

@@ -88,14 +88,14 @@
             </li>
             <li>
                 <strong>Reflex point:</strong> Point which is pointed inwards
-                and reason why a simple polygon is not a convex hull.
+                and the reason why a simple polygon is not convex.
             </li>
             <li>
-                <strong>Notch:</strong> Same as a reflex point, and mostly used
+                <strong>Notch:</strong> Same as a reflex point, mostly used
                 in the description of the Chazelle decomposition.
             </li>
             <li>
-                <strong>DCEL:</strong> Double Connected Edge List. Structure that
+                <strong>DCEL:</strong> Doubly Connected Edge List. Structure that
                 facilitates the addition/removal/updating of various vertices/edges/faces.
             </li>
         </ul>
@@ -104,37 +104,44 @@
     <h2>Description of the project</h2>
 
     <p>
-        The goal of the project is to explore different algorithms for decomposing
-        a simple polygon into convex subcomponents. For this project five different
-        algorithms are attempted. For this, multiple strategies are examined. The
-        first strategy is of not adding any extra points (called Steiner points).
-        The algorithms that are attempted with this are simple triangulation and
-        greedy decomposition. The second strategy is to allow adding adding extra
-        points to ease the decomposition. For this, the Chazelle algorithm, slab
+        The project aims to investigate various algorithms for decomposing a simple polygon into convex subcomponents. Five different algorithms are explored, accompanied by an examination of their overall strategies. The initial approach involves avoiding the addition of extra points, commonly referred to as Steiner points. Algorithms within this paradigm are simple triangulation and
+        greedy decomposition. The second strategy permits the addition of extra
+        points to ease the decomposition process. For this one, Chazelle algorithm, slab
         decomposition and KD decomposition are going to be implemented.
     </p>
 
     <p>
-        To better be able to compare the performance of the different algorithms,
-        a Minkovski sums algorithm will be implemented where its first step is to
-        decompose the polygons on which the sum will be calculated. Reducing the
+        To demonstrate an example of application of the different decompositions,
+        a Minkowski sums algorithm will be implemented. The initial phase of this algorithm involves decomposing the polygons upon which the sum will be calculated. Reducing the
         amount of decomposition components will here result generally in better
         performance.
     </p>
 
     <p>
-        Here now follows a more thorough description of the different components of
-        the application and its implemented algorithms.
+        Now, a more thorough description of application's various components and implemented algorithms will be presented.
     </p>
+
+    <h3>Doubly Connected Edge List</h3>
+    <small><strong>By Célian Glénaz</strong></small>
+        <p>
+    Prior to initiating the implementation of any decomposition algorithm, we have to determine the most suitable representation for polygons and their decompositions. In the description of the triangulation algorithm, a recommended structure is proposed: doubly connected edge list. After some research, it seems that it is the best choice for our application. It accommodates complex arrangements of edges, vertices and faces that can represent a decomposed polygon. Furthermore, you can easily add new edge or vertices. Finally, the structure allows for efficient iteration over faces, facilitating the extraction of generated convex shapes by traversing their borders.
+        </p>
+    <p>
+    We chose to implement our own DCEL class to enhance our understanding of its workings. It is composed of three classes: DCFace, DCHalfEdge and DCVertex, corresponding to the fundamental components of the DCEL. The DCEL class features two main methods:
+    </p> 
+    <ul>
+      <li>getPrevEdgeOfFace(DCVertex, DCFace): get the previous edge of a given face in the counter-clockwise order (used in triangulation)
+      </li>
+      
+      <li>addVertex(DCHalfEdge, PVector): insert a vertex at a given position in a given half edge (used in KD and slab decomposition)</li>
+    </ul> 
+    
 
     <h3>Triangulation</h3>
     <small><strong>By Célian Glénaz</strong></small>
     <p>
-        Our implementation of triangulation is based on the line sweep algorithms seen in the course. The first part is
-        to split a simple polygon into multiple Y-monotone polygons by adding carefully chosen edges. The <strong>doubly
-            connected edge list</strong> structure has been implemented to easily add edges and provide efficient way to
-        represent the newly created polygons. At the end of the first part, the border of each face in the DCEL is a
-        y-monotone polygon. Here is an example of result of our application at this stage:
+        Our implementation of triangulation relies on the line sweep algorithms covered in the course. The first part involves partitioning a simple polygon into multiple Y-monotone polygons by adding carefully chosen edges. At the end of this stage, the boundary of each face in the DCEL is a
+        y-monotone polygon. Here is an illustrative example from our application at this stage:
     </p>
     <img src="figures/Ymonotone.png" alt="Y-monotone decomposition">
     <p>
@@ -143,6 +150,10 @@
     </p>
     <img src="figures/triangulated.png" alt="Triangulation">
 
+    <p>
+       For our test examples, the result is the following:
+    </p>
+
     <img src="figures/tri-curl.png">
     <img src="figures/tri-splitjoin.png">
     <img src="figures/tri-zaag.png">
@@ -150,10 +161,12 @@
     <h3>Greedy Decomposition</h3>
     <small><strong>By Célian Glénaz</strong></small>
     <p>
-        This decomposition uses the triangulation algorithm but stop as soon as there is no more reflex vertex in the
-        polygon. To be done.
+        This decomposition leverages the triangulation algorithm but halts as soon as there are no more reflex vertices in the polygon. It is implemented by introducing a <i>greedy</i> boolean variable as an argument of the triangulation methods and a <i>reflexVertices</i> list in DCEL.Upon the addition of each edge, the reflex vertices are updated. If the list becomes empty, the program checks whether the greedy mode is activated, and if so, it returns. The process may halt in the monotone decomposition or in any of the triangulations. Nevertheless, when a reflex vertex is positioned at the bottom of the decomposed polygon, the result is the same as the regular triangulation.
     </p>
 
+    <p>
+       For our test examples, the result is the following:
+    </p>
     <img src="figures/greedy-curl.png">
     <img src="figures/greedy-splitjoin.png">
     <img src="figures/greedy-zaag.png">
@@ -261,12 +274,39 @@
     <h3>Chazelle P-time decomposition algorithm</h3>
     <small><strong>By Mevel Gilles</strong></small>
 
-    <h3>Minkovski sum algorithm</h3>
+    <h3>Minkowski sum algorithm</h3>
     <small><strong>By Célian Glénaz</strong></small>
 
     <p>
-        To be done.
+    According to <i>Polygon decomposition for efficient construction of Minkowski sums</i>, calculating Minkowski sums can be done in three steps:
+        
+       <ul>
+      <li>Decompose the input polygons <b>P</b> and <b>Q</b> into convex subpolygons <b>P1, P2, ..., Ps</b> and <b>Q1, Q2, ..., Qt</b>.
+      </li>
+      <li>
+      For each i,j compute the Minkowski subsum of <b>Pi</b> and <b>Qj</b>.
+      </li>
+      <li>
+      Construct the union of all the polygons from previous step.
+      </li>
+    </ul> 
+    
     </p>
+    
+    <p>
+    Therefore, after choosing the decomposition algorithm, we have to compute the minkowski sum of two convex polygons.  <a href="https://cp-algorithms.com/geometry/minkowski.html">This article</a> explains everything we need to know about this subject. They also provide this illustration:
+    </p>
+    <img alt="Visual" src="https://cp-algorithms.com/geometry/minkowski.gif">
+    
+    A short explanation is the following:
+    <p>
+    When both polygon are convex, the edges of their minkowki sum are the combined edges of both polygons, sorted by polar angles. Since in a convex polygon the edges are already sorted by polar angle, we can iterate simultaneously on both polygons edges and get the lower element at each iteration. To compare two edges we can use the orientation of (origin, edge1, edge1+edge2).
+    </p>
+    
+    
+     <p>
+     For the union part, since we do not use the Minkowski sum to computes other things like collisions, we do not have to implement it. We can just draw every minkowski subsum with transparency in order to help us understand the result.
+     </p>   
 
     <h3>GUI</h3>
     <small><strong>By Andreas Declerck</strong></small>
@@ -450,7 +490,7 @@
 
     <ul>
         <li>Chazelle P-time decomposition</li>
-        <li>Minkovski sums</li>
+        <li>Minkowski sums</li>
     </ul>
 
     <h2>References</h2>
