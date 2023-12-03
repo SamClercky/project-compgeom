@@ -15,7 +15,11 @@ class NotchFinderTest {
 	//A flag-shaped polygon
 	private SimplePolygon flagPolygon;
 
+	private SimplePolygon flagPolygonWithReflexPointAsFirstPoint;
+
 	private SimplePolygon complexNonConvexShape;
+
+	private SimplePolygon convexTriangleWithColinearPoints;
 
 	@BeforeEach
 	void setup() {
@@ -27,6 +31,14 @@ class NotchFinderTest {
 				new PVector(0, 2),
 				new PVector(2, 2),
 				new PVector(2, 0)
+		)));
+		this.flagPolygonWithReflexPointAsFirstPoint = new SimplePolygon(new ArrayList<>(Arrays.asList(
+				//reflex point
+				new PVector(1, 1),
+				new PVector(0, 2),
+				new PVector(2, 2),
+				new PVector(2, 0),
+				new PVector(0, 0)
 		)));
 		this.complexNonConvexShape = new SimplePolygon(new ArrayList<>(Arrays.asList(
 				new PVector(3, 0),
@@ -46,27 +58,42 @@ class NotchFinderTest {
 				//Reflex point
 				new PVector(4, 2)
 		)));
+		this.convexTriangleWithColinearPoints = new SimplePolygon(new ArrayList<>(Arrays.asList(
+				new PVector(0, 0),
+				new PVector(0, 7),
+				new PVector(9, 7),
+				new PVector(3, 1),
+				new PVector(2, 0))
+		));
 	}
 
 	@Test
-	void given_flag_polygon_then_only_point_1_1_is_a_notch() {
-		final var notchFinder = new NotchFinder(flagPolygon);
-		final List<PVector> notches = notchFinder.findNotches().getNotches();
-		final List<PVector> expected = List.of(new PVector(1, 1));
+	void given_polygon_then_notch_finder_retrieves_valid_points() {
+		final var notchFinderA = new NotchFinder(flagPolygon);
+		final List<PVector> notchesA = notchFinderA.findNotches().getNotches();
+		final List<PVector> expectedA = List.of(new PVector(1, 1));
 
-		Assertions.assertEquals(expected, notches);
-	}
-
-	@Test
-	void given_complex_non_convex_polygon_then_valid_notches_are_returned() {
-		final var notchFinder = new NotchFinder(complexNonConvexShape);
-		final List<PVector> notches = notchFinder.findNotches().getNotches();
-		final List<PVector> expected = List.of(new PVector(3, 5),
+		final var notchFinderB = new NotchFinder(complexNonConvexShape);
+		final List<PVector> notchesB = notchFinderB.findNotches().getNotches();
+		final List<PVector> expectedB = List.of(new PVector(3, 5),
 				new PVector(6, 9),
 				new PVector(7, 4),
 				new PVector(4, 2));
 
-		Assertions.assertEquals(expected, notches);
+		//Check a full convex polygon with co linear points
+		final var notchFinderC = new NotchFinder(convexTriangleWithColinearPoints);
+		final List<PVector> notchesC = notchFinderC.findNotches().getNotches();
+		//No notches should be found
+		final List<PVector> expectedC = new ArrayList<>();
+
+		final var notchFinderD = new NotchFinder(flagPolygonWithReflexPointAsFirstPoint);
+		final List<PVector> notchesD = notchFinderD.findNotches().getNotches();
+		final List<PVector> expectedD = new ArrayList<>(List.of(new PVector(1, 1)));
+
+		Assertions.assertEquals(expectedA, notchesA);
+		Assertions.assertEquals(expectedB, notchesB);
+		Assertions.assertEquals(expectedC, notchesC);
+		Assertions.assertEquals(expectedD, notchesD);
 	}
 
 }
