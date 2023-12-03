@@ -4,7 +4,6 @@ import be.ulbvub.compgeom.utils.*;
 import org.junit.jupiter.api.BeforeEach;
 import processing.core.PVector;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -74,9 +73,9 @@ public abstract class DecompositionTest {
     }
 
     public static Polygon readPolygon(String fileName) throws IOException {
-        final var polygonResource = DecompositionTest.class.getClassLoader().getResource(fileName).getFile();
+        final var polygonResource = DecompositionTest.class.getClassLoader().getResourceAsStream(fileName);
         final var reader = new PolygonReader();
-        reader.readFile(new File(polygonResource));
+        reader.readFile(polygonResource);
         return reader.getPolygon();
     }
 }

@@ -6,22 +6,19 @@ import processing.core.PVector;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 
 public class PolygonReader {
 
     public enum PrefabPolygons {
-        Curl("Curl", "curl.poly"),
-        CurlInverted("Inverted Curl", "curl-inverted.poly"),
-        Indented("Indented", "indented.poly"),
-        IndentedHorizontal("Horizontal Indented", "indented-horizontal.poly"),
-        SplitJoin("Split Join", "internal-split-join.poly"),
-        Saw("Saw", "zaag.poly"),
-        NonConvexRect("Non-convex rectangle (Chazelle only)", "non-convex-rectangle3.poly");
+        Curl("Curl", "shapes/curl.poly"),
+        CurlInverted("Inverted Curl", "shapes/curl-inverted.poly"),
+        Indented("Indented", "shapes/indented.poly"),
+        IndentedHorizontal("Horizontal Indented", "shapes/indented-horizontal.poly"),
+        SplitJoin("Split Join", "shapes/internal-split-join.poly"),
+        Saw("Saw", "shapes/zaag.poly"),
+        NonConvexRect("Non-convex rectangle (Chazelle only)", "shapes/non-convex-rectangle3.poly");
 
         private String fileName;
         private String name;
@@ -36,8 +33,8 @@ public class PolygonReader {
             return name;
         }
 
-        public File getFile() {
-            return new File(getClass().getClassLoader().getResource(fileName).getFile());
+        public InputStream getFile() {
+            return getClass().getClassLoader().getResourceAsStream(fileName);
         }
     }
 
@@ -62,6 +59,7 @@ public class PolygonReader {
                     readFile(((PrefabPolygons) selector.getSelectedItem()).getFile());
                 } catch (IOException e) {
                     System.err.println("Could not open prefab polygon: " + selector.getSelectedItem());
+                    e.printStackTrace();
                 }
 
                 this.dispose();
@@ -112,7 +110,10 @@ public class PolygonReader {
                 try {
                     final var selected = dialog.getSelectedFile();
                     lastRead = selected;
-                    readFile(selected);
+                    if (!selected.isFile() || !selected.canRead()) {
+                        throw new IOException("Path is not a file or is not readable");
+                    }
+                    readFile(new FileInputStream(selected));
                 } catch (IOException | RuntimeException ex) {
                     JOptionPane.showMessageDialog(
                             null,
@@ -135,12 +136,12 @@ public class PolygonReader {
         }
     }
 
-    public void readFile(File file) throws IOException, RuntimeException {
-        if (!file.isFile() || !file.canRead()) {
-            throw new IOException("Path is not a file or is not readable");
-        }
+    public void readFile(InputStream file) throws IOException, RuntimeException {
+//        if (!file.isFile() || !file.canRead()) {
+//            throw new IOException("Path is not a file or is not readable");
+//        }
 
-        final var buffer = new BufferedReader(new FileReader(file));
+        final var buffer = new BufferedReader(new InputStreamReader(file));
         var line = buffer.readLine();
         while (line != null && !line.isEmpty()) {
             var point = line.split(";");
