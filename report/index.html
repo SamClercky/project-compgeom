@@ -273,6 +273,61 @@
 
     <h3>Chazelle P-time decomposition algorithm</h3>
     <small><strong>By Mevel Gilles</strong></small>
+	
+	<p>
+	The Chazelle decomposition algorithm is described in the 1979 paper <i>"Decomposing a polygon into its convex parts" by Bernard Chazelle</i>.
+	The algorithm is based on identifying patterns in the polygon, leading to an efficient decomposition using said patterns. First, we must identify
+	the notches (equivalent to a reflex point) of the polygon, which will later be used as a basic component in the pattern identification.
+	</p>
+	
+	<p>
+	The notion of Xk-pattern is then introduced as an element interconnecting k notches, forming a set of k polygons and removing all reflex points occuring at those k notches.
+	No new notch is introduced by the Xk-patterns.
+	The final solution will then be made out of all the possible Xk-patterns found in the polygon.
+	</p>
+	
+	<p>
+	Only the Xk-pattern and subsequent decompositions is considered in the paper, but it is important to note that Chazelle also identifies Yk-patterns.
+	These Yk-patterns are derived from the Xk-patterns and used to further improve the final decomposition.
+	</p>
+	
+	<p>
+	The vast majority of the work done in this part of the project involves the pre processing step of the Chazelle algorithm.
+	This step consists in identifying specific segments and points in the polygon, by grouping together 3 different notches of the polygon (named Vi, Vj, Vk in the paper).
+	One can imagine these 3 points positioned in a triangle, where other notches can sit in between each pair of points. The pre processing will then generate 2 segments between
+	each points of (Vi, Vj, Vk) in a left and right manner. For each of these points, 2 segments, l' and r' (respectively left and right) are generated (following the specific procedure
+	described in the paper). For each of these segments, their intersections are also computed, and their coordinates are registered as M-points. An additional sub-step requires to
+	check whether the M-points and the associated l' and r' all sit inside the polygon. All these lines and intersections can be computed in O(N(P)) where N(P) denotes the number of notches in the polygon P.
+	</p>
+	
+	<p>
+	All the previously computed l' and r' segments as well as M-points are used to try and identify specific patterns in the polygon. 2 specific Xk-patterns are considered in the code:
+	
+		<ul>
+			<li>The X2-patterns, separating the polygon into 2 sub-polygons which union reduces the number of notches by 2.</li>
+			<li>The X3-patterns, separating the polygon into 4 sub-polygons which union reduces the number of notches by 3.</li>
+		</ul>
+	
+	It is important to note that the original intent of the X3-patterns is to introduce 3 sub-polygons, and not 4. In the scope of this project, inner sub-polygons
+	(sub-polygons which have no edges in the hull of the polygon) are kept. However a 'relatively simple' procedure could improve this further: Compute the center of the triangle formed by the X3-pattern (the inner sub-polygon)
+	and "push" the edges of the inner sub-polygon inwards until they all meet at the center point. This would increase the area of the 3 surrounding sub-polygons without introducing any new notch and effectively remove
+	the center sub-polygon as it would simply disappear.
+	</p>
+	
+	<p>
+	The final step of this part of the project is to split the polygon into its convex components using the computed patterns. Again, the original intent was to make use of the Yk-patterns, but a simple greedy procedure
+	will be used instead as the amount of time required to implement the entirety of the paper was simply too much for me alone. The greedy procedure will start with all the X3-patterns first, as they have
+	the potential to maximize the number of removed notches for a minimum of introduced sub-polygon. Every time a new X3-pattern is considered, the algorithm verifies that this specific X3-pattern (i.e. the 3 points involved)
+	can be used to split the polygon. Every time the polygon is split into sub parts, any other X3-pattern might not be usable as their points might now be scattered among different sub-polygons.
+	
+	Finally, the X2-patterns are considered, following the same logic. Once all sub convex componenents have been computed, they are returned by the algorithm.
+	</p>
+	
+	<p>
+	Here is an example of the result of the Chazelle decomposition, considering only X2 and X3-patterns:
+	</p>
+	
+	<img src="figures/non-convex-rectangle-chazelle.png">
 
     <h3>Minkowski sum algorithm</h3>
     <small><strong>By Célian Glénaz</strong></small>
