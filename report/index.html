@@ -87,7 +87,7 @@
                 facilitate a cut in the polygon.
             </li>
             <li>
-                <strong>Reflex point:</strong> Point which is pointed inwards
+                <strong>Reflex point:</strong> Point which is pointed inward,
                 and the reason why a simple polygon is not convex.
             </li>
             <li>
@@ -106,25 +106,25 @@
     <p>
         The project aims to investigate various algorithms for decomposing a simple polygon into convex subcomponents. Five different algorithms are explored, accompanied by an examination of their overall strategies. The initial approach involves avoiding the addition of extra points, commonly referred to as Steiner points. Algorithms within this paradigm are simple triangulation and
         greedy decomposition. The second strategy permits the addition of extra
-        points to ease the decomposition process. For this one, Chazelle algorithm, slab
-        decomposition and KD decomposition are going to be implemented.
+        points to ease the decomposition process. For this one, the Chazelle algorithm, slab
+        decomposition, and KD decomposition are going to be implemented.
     </p>
 
     <p>
         To demonstrate an example of application of the different decompositions,
         a Minkowski sums algorithm will be implemented. The initial phase of this algorithm involves decomposing the polygons upon which the sum will be calculated. Reducing the
-        amount of decomposition components will here result generally in better
+        number of decomposition components here will generally result in better
         performance.
     </p>
 
     <p>
-        Now, a more thorough description of application's various components and implemented algorithms will be presented.
+        Now, a more thorough description of the application's various components and implemented algorithms will be presented.
     </p>
 
     <h3>Doubly Connected Edge List</h3>
     <small><strong>By Célian Glénaz</strong></small>
         <p>
-    Prior to initiating the implementation of any decomposition algorithm, we have to determine the most suitable representation for polygons and their decompositions. In the description of the triangulation algorithm, a recommended structure is proposed: doubly connected edge list. After some research, it seems that it is the best choice for our application. It accommodates complex arrangements of edges, vertices and faces that can represent a decomposed polygon. Furthermore, you can easily add new edge or vertices. Finally, the structure allows for efficient iteration over faces, facilitating the extraction of generated convex shapes by traversing their borders.
+    Prior to initiating the implementation of any decomposition algorithm, we have to determine the most suitable representation for polygons and their decompositions. In the description of the triangulation algorithm, a recommended structure is proposed: a doubly connected edge list. After some research, it seems that it is the best choice for our application. It accommodates complex arrangements of edges, vertices and faces that can represent a decomposed polygon. Furthermore, you can easily add new edges or vertices. Finally, the structure allows for efficient iteration over faces, facilitating the extraction of generated convex shapes by traversing their borders.
         </p>
     <p>
     We chose to implement our own DCEL class to enhance our understanding of its workings. It is composed of three classes: DCFace, DCHalfEdge and DCVertex, corresponding to the fundamental components of the DCEL. The DCEL class features two main methods:
@@ -140,7 +140,7 @@
     <h3>Triangulation</h3>
     <small><strong>By Célian Glénaz</strong></small>
     <p>
-        Our implementation of triangulation relies on the line sweep algorithms covered in the course. The first part involves partitioning a simple polygon into multiple Y-monotone polygons by adding carefully chosen edges. At the end of this stage, the boundary of each face in the DCEL is a
+        Our implementation of triangulation relies on the line-sweep algorithms covered in the course. The first part involves partitioning a simple polygon into multiple Y-monotone polygons by adding carefully chosen edges. At the end of this stage, the boundary of each face in the DCEL is a
         y-monotone polygon. Here is an illustrative example from our application at this stage:
     </p>
     <img src="figures/Ymonotone.png" alt="Y-monotone decomposition">
@@ -176,8 +176,8 @@
 
     <p>
         The slab decomposition algorithm is described in <c-cite src="agarwal_polygon_2002" />.
-        It works by choosing a direction in which to cut and then on every reflex
-        point, cut the polygon up and down following the initial chosen
+        It works by choosing a direction in which to cut and then, on every reflex
+        point, cutting the polygon up and down following the initial chosen
         direction. For implementation, only cutting along the y-axis is handled.
     </p>
 
@@ -188,7 +188,7 @@
         sweep line algorithm that travels perpendicular to the initial direction
         over the field with the vertices as its events. This is done to maintain a list
         of edges above and below a certain point, so only a limited amount of edges need
-        to be tested for intersection. Once an edge above/below a reflex point has been
+        to be tested for intersection. Once an edge above or below a reflex point has been
         found, a cut will be made along the initially chosen direction.
     </p>
 
@@ -224,14 +224,14 @@
         and has been inspired by KD trees sometimes used to accelerate
         raytracing algorithms (see Physically Based Rendering by Pharr, Jacob
         and Humphreys). The basic idea is to subdivide space by first sorting
-        all points along all axis (x,y) and then each step taking the median
-        along one of these axis and subdividing along this axis through the
+        all points along all axes (x,y) and then each step taking the median
+        along one of these axes and subdividing along this axis through the
         selected point.
     </p>
 
     <p>
         For the KD decomposition algorithm, this results in first finding all
-        reflex points in the polygon and sorting them along the x- and y-axis.
+        reflex points in the polygon and sorting them along the x- and y-axes.
         Every iteration, the median of the sorted reflex points is selected along
         the current axis. The polygon is then cut along this axis through the
         median point. The resulting pieces after the cut are then handled
@@ -250,8 +250,8 @@
         points is O(n) and sorting them along all the axis's is O(n log(n)). For
         the meat of the algorithm, first finding the median along an axis region
         is O(1) ((start + end) / 2). Finding one or possibly two opposite sides
-        for making a cut, is done by iterating all edges of the faces adjacent to
-        the current reflex point. If an edge is intersecting with the direction of
+        for making a cut, is done by iterating over all the edges of the faces adjacent to
+        the current reflex point. If an edge intersects with the direction of
         the cut, is visible from inside the polygon by the current reflex point and
         is the closest intersection seen from the current reflex point, a cut is
         made from the current reflex point to the intersection with the line
@@ -260,10 +260,10 @@
         face between the reflex point and the cut's destination. Finding the cut's
         destination is O(FE) with F the adjacent faces to the reflex point and E
         the number of edges in these adjacent faces. As it is not guaranteed that
-        the cut evenly divides every time the polygon, resulting in having to search
+        the cut evenly divides the polygon every time, resulting in having to search
         faces that do not really reduce in size with every cut. This leads to a worst
         case time complexity of n*O(n)=O(n^2). But when considering more favorable
-        polygons where cutting, splits a face into 2 more equal parts, it can be said
+        polygons where cutting, splits a face into two more equal parts, it can be said
         that the amortized time becomes O(n log n).
     </p>
 
@@ -306,29 +306,29 @@
     
     
      <p>
-     For the union part, since we do not use the Minkowski sum to computes other things like collisions, we do not have to implement it. We can just draw every minkowski subsum with transparency in order to help us understand the result.
+     For the union part, since we do not use the Minkowski sum to compute other things like collisions, we do not have to implement it. We can just draw every minkowski subsum with transparency in order to help us understand the result.
      </p>   
 
-    For the example we took the slab decomposition of the saw pattern and calculate the minkowski sum with a small circle.
+    For the example, we took the slab decomposition of the saw pattern and calculated the Minkowski sum with a small circle.
     <img src="figures/slab-zaag.png">
     <img src="figures/minkowski-slab-zaag.png">
     <img src="figures/triangulation-curl-square.png">
-    The "tips" are rounded and we can see overlaps in every edges added by the decomposition. This demonstrate why the minkowski sum is used to find path between obstacles for a moving robot. The area of the sum would be an area where a round robot would hit the obstacle. The second example is the Minkowski sum of the triangulation of a curved shape and a small square. We selected simple forms and decompositions because otherwise it becomes quite difficult to comprehend the result of the minkowski sum.
+    The "tips" are rounded, and we can see overlaps in every edge added by the decomposition. This demonstrates why the Minkowski sum is used to find paths between obstacles for a moving robot. The area of the sum would be an area where a round robot would hit the obstacle. The second example is the Minkowski sum of the triangulation of a curved shape and a small square. We selected simple forms and decompositions because otherwise it becomes quite difficult to comprehend the result of the Minkowski sum.
     
     <h3>GUI</h3>
     <small><strong>By Andreas Declerck</strong></small>
 
     <p>
-        The GUI is made with Processing in Java for the drawing and interactive part and
+        The GUI is made with Processing in Java for the drawing and interactive parts and
         uses Swing for all other menus. It contains a custom layout engine to position
-        dynamically the buttons in the menu and displays metrics about a certain
+         the buttons dynamically in the menu and displays metrics about a certain
         decomposition.
     </p>
 
     <p>
         For easy testing and experimenting, it is possible to save and reopen a polygon.
-        Saving is done by storing the points of the polygon into a custom file format.
-        Doing this allows to experiment with different types of polygons in an automated
+        Saving is done by storing the points of the polygon in a custom file format.
+        Doing this allows to experiment with different types of polygons on an automated
         testing bed.
     </p>
 
@@ -495,7 +495,7 @@
 
     <h2>Conclusion</h2>
 
-    The triangulation algorithm is composed of less vertices/edges than other decompositions, but the result looks less natural than slab decomposition for example. The greedy mode doesn't provide much improvements on the test shown but reduces the number of edges most of the time in other polygons. Slab and KD decompositions create less faces and so will be more efficient for some use case like calculating minkowski sums (on the union step).
+    The triangulation algorithm is composed of fewer vertices and edges than other decompositions, but the result looks less natural than slab decomposition, for example. The greedy mode doesn't provide much improvements on the test shown but reduces the number of edges most of the time in other polygons. Slab and KD decompositions create less faces and will therefore be more efficient for some use cases like calculating minkowski sums (on the union step).
 
     <h2>References</h2>
 
