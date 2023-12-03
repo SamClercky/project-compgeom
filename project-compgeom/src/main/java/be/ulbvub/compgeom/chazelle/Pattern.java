@@ -4,6 +4,8 @@ import processing.core.PVector;
 
 public interface Pattern {
 
+	boolean isSimilar(Pattern pattern);
+
 	class X2Pattern implements Pattern {
 
 		private final PVector i;
@@ -13,6 +15,17 @@ public interface Pattern {
 		public X2Pattern(final PVector i, final PVector j) {
 			this.i = i;
 			this.j = j;
+		}
+
+		@Override
+		public boolean isSimilar(final Pattern pattern) {
+			if(!(pattern instanceof X2Pattern x2Pattern)) {
+				return false;
+			}
+
+			return (this.i.equals(x2Pattern.i) || this.i.equals(x2Pattern.j))
+					&& (this.j.equals(x2Pattern.i) || this.j.equals(x2Pattern.j))
+					&& !x2Pattern.i.equals(x2Pattern.j);
 		}
 
 	}
@@ -29,6 +42,18 @@ public interface Pattern {
 			this.i = i;
 			this.j = j;
 			this.k = k;
+		}
+
+		@Override
+		public boolean isSimilar(final Pattern pattern) {
+			if(!(pattern instanceof X3Pattern x3Pattern)) {
+				return false;
+			}
+
+			return (this.i.equals(x3Pattern.i) || this.i.equals(x3Pattern.j) || this.i.equals(x3Pattern.k))
+					&& (this.j.equals(x3Pattern.i) || this.j.equals(x3Pattern.j) || this.j.equals(x3Pattern.k))
+					&& (this.k.equals(x3Pattern.i) || this.k.equals(x3Pattern.j) || this.k.equals(x3Pattern.k))
+					&& !(x3Pattern.i.equals(x3Pattern.j) || x3Pattern.i.equals(x3Pattern.k) || x3Pattern.j.equals(x3Pattern.k));
 		}
 
 	}
@@ -48,6 +73,11 @@ public interface Pattern {
 			this.j = j;
 			this.k = k;
 			this.l = l;
+		}
+
+		@Override
+		public boolean isSimilar(final Pattern pattern) {
+			return false;
 		}
 
 	}

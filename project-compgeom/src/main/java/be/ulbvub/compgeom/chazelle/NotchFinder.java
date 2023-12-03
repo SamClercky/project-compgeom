@@ -40,7 +40,7 @@ public class NotchFinder {
 			final PVector[] edge2 = new PVector[] {polygon.points().get(i), polygon.points().get((i+1) % size)};
 
 			//Check for a left turn
-			if(SimplePolygon.getTurnDirection(edge1, edge2) > 0) {
+			if(SimplePolygon.getTurnDirection(edge1, edge2) < 0) {
 				//Put the middle point in the notches list
 				notches.add(polygon.points().get(i));
 			}

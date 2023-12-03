@@ -70,7 +70,7 @@ public class PatternDetector {
 		}
 		if(bestT == null) {
 			System.out.println("No notches between this pair of points");
-			return Optional.empty();
+			return Optional.of(new PVector[]{from, to});
 		}
 
 		System.out.println("Returning (" + from.toString() + ", " + bestT.toString() + ")");
@@ -117,7 +117,7 @@ public class PatternDetector {
 		}
 		if(bestT == null) {
 			System.out.println("No notches between this pair of points");
-			return Optional.empty();
+			return Optional.of(new PVector[]{from, to});
 		}
 
 		System.out.println("Returning (" + from.toString() + ", " + bestT.toString() + ")");
@@ -294,7 +294,7 @@ public class PatternDetector {
 
 	private void detectX2Pattern() {
 		for(final PVector i : notches) {
-			for (final PVector j : notches) {
+			for(final PVector j : notches) {
 				final Optional<SegmentData> l_ij = leftSegments.stream()
 						.filter(data -> data.from.equals(i) && data.to.equals(j))
 						.findFirst();
@@ -308,8 +308,24 @@ public class PatternDetector {
 						.filter(data -> data.from.equals(j) && data.to.equals(i))
 						.findFirst();
 
-				if(l_ij.isPresent() && l_ji.isPresent() && r_ij.isPresent() && r_ji.isPresent()) {
-					System.out.println("X2 candidate: " + i.toString() + "; " + j.toString());
+				if(l_ij.isEmpty() || l_ji.isEmpty() || r_ij.isEmpty() || r_ji.isEmpty()) {
+					continue;
+				}
+				if(SimplePolygon.getTurnDirection(l_ij.get().segment[1], i, r_ij.get().segment[1]) > 0
+					|| SimplePolygon.getTurnDirection(l_ji.get().segment[1], j, r_ji.get().segment[1]) > 0) {
+					continue;
+				}
+				final var x2Pattern = new Pattern.X2Pattern(i, j);
+				boolean unique = true;
+
+				for(final Pattern pattern : xkPatterns) {
+					if(pattern.isSimilar(x2Pattern)) {
+						unique = false;
+					}
+				}
+				if(unique) {
+					System.out.println("Adding " + i + j);
+					xkPatterns.add(x2Pattern);
 				}
 			}
 		}
@@ -342,9 +358,9 @@ public class PatternDetector {
 							|| lPrime_kj.isEmpty() || rPrime_ki.isEmpty()) {
 						continue;
 					}
-					if(SimplePolygon.getTurnDirection(lPrime_ik.get().segment, rPrime_ij.get().getSegment()) < 0
-						|| SimplePolygon.getTurnDirection(lPrime_ji.get().segment, rPrime_jk.get().getSegment()) < 0
-						|| SimplePolygon.getTurnDirection(lPrime_kj.get().segment, rPrime_ki.get().getSegment()) < 0) {
+					if(SimplePolygon.getTurnDirection(lPrime_ik.get().segment, rPrime_ij.get().getSegment()) > 0
+						|| SimplePolygon.getTurnDirection(lPrime_ji.get().segment, rPrime_jk.get().getSegment()) > 0
+						|| SimplePolygon.getTurnDirection(lPrime_kj.get().segment, rPrime_ki.get().getSegment()) > 0) {
 						continue;
 					}
 					final Optional<IntersectionData> M_ij = intersections.stream()
@@ -360,10 +376,18 @@ public class PatternDetector {
 					if(M_ij.isEmpty() || M_jk.isEmpty() || M_ki.isEmpty()) {
 						continue;
 					}
-					if(!M_ij.get().flag || !M_jk.get().flag || !M_ki.get().flag) {
-						continue;
+					final var x3Pattern = new Pattern.X3Pattern(i, j, k);
+					boolean unique = true;
+
+					for(final Pattern pattern : xkPatterns) {
+						if(pattern.isSimilar(x3Pattern)) {
+							unique = false;
+						}
 					}
-					System.out.println("Candidate for an X3 pattern: " + i + j + k);
+					if(unique) {
+						System.out.println("Adding " + i + j + k);
+						xkPatterns.add(x3Pattern);
+					}
 				}
 			}
 		}

@@ -101,10 +101,10 @@ public class PatternDetectorTest {
 				//Notch
 				new PVector(10, 1),
 				new PVector(9, 0),
-				new PVector(3, 0),
+				new PVector(5, 0),
 				//Notch
-				new PVector(3, 1),
-				new PVector(2, 0)
+				new PVector(5, 1),
+				new PVector(4, 0)
 		)));
 	}
 

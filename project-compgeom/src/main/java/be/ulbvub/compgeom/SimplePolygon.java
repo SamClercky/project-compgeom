@@ -380,9 +380,9 @@ public record SimplePolygon(List<PVector> points) {
 		//(x2 - x1) * (y3 - y1) - (y2 - y1) * (x3 - x1)
 		final double value = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
 
-		if(value > 0) {
+		if(value < 0) {
 			return 1;
-		} else if(value < 0) {
+		} else if(value > 0) {
 			return -1;
 		} else {
 			return 0;
