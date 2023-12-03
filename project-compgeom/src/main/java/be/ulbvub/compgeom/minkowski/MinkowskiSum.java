@@ -2,6 +2,7 @@ package be.ulbvub.compgeom.minkowski;
 
 import be.ulbvub.compgeom.ui.DrawContext;
 import be.ulbvub.compgeom.ui.Drawable;
+import be.ulbvub.compgeom.ui.PolygonGroup;
 import be.ulbvub.compgeom.utils.*;
 import processing.core.PConstants;
 import processing.core.PVector;
@@ -18,12 +19,12 @@ public class MinkowskiSum implements Drawable, CalculationResult {
     Minkowski sum of convex polygons, based on this article: https://cp-algorithms.com/geometry/minkowski.html
      */
 
-    private static void reorder(ArrayList<DCVertex> vertices){
+    private static void reorder(ArrayList<DCVertex> vertices) {
         int pos = 0;
-        for(int i =1; i< vertices.size(); i++){
+        for (int i = 1; i < vertices.size(); i++) {
             PVector lhs = vertices.get(i).getPoint();
             PVector rhs = vertices.get(pos).getPoint();
-            if(lhs.y < rhs.y || (lhs.y == rhs.y && lhs.x < rhs.x)){
+            if (lhs.y < rhs.y || (lhs.y == rhs.y && lhs.x < rhs.x)) {
                 pos = i;
             }
         }
@@ -43,30 +44,38 @@ public class MinkowskiSum implements Drawable, CalculationResult {
 
         int n1 = vertices1.size();
         int n2 = vertices2.size();
-        int i = 0,j = 0;
+        int i = 0, j = 0;
         ArrayList<PVector> result = new ArrayList<>();
-        while(i < n1 || j < n2){
-            PVector point1 = vertices1.get(i%n1).getPoint();
-            PVector point2 = vertices2.get(j%n2).getPoint();
+        while (i < n1 || j < n2) {
+            PVector point1 = vertices1.get(i % n1).getPoint();
+            PVector point2 = vertices2.get(j % n2).getPoint();
             PVector sumPoint = PVector.add(point1, point2);
             result.add(sumPoint);
-            PVector edge1 = PVector.sub(vertices1.get((i+1)%n1).getPoint(), point1);
-            PVector edge2 = PVector.sub(vertices2.get((j+1)%n2).getPoint(), point2);
-            float crossProduct = TurnDirection.orientationRaw(new PVector(0,0,0),edge2, PVector.add(edge1,edge2));
-            if(crossProduct >= 0 && i < n1){
+            PVector edge1 = PVector.sub(vertices1.get((i + 1) % n1).getPoint(), point1);
+            PVector edge2 = PVector.sub(vertices2.get((j + 1) % n2).getPoint(), point2);
+            float crossProduct = TurnDirection.orientationRaw(new PVector(0, 0, 0), edge2, PVector.add(edge1, edge2));
+            if (crossProduct >= 0 && i < n1) {
                 ++i;
             }
-            if(crossProduct <= 0 && j < n2){
+            if (crossProduct <= 0 && j < n2) {
                 ++j;
             }
         }
         return new DoublyConnectedEdgeList(result);
     }
 
-    public MinkowskiSum(DoublyConnectedEdgeList decomposition, DoublyConnectedEdgeList convexShape){
+    public MinkowskiSum(DoublyConnectedEdgeList decomposition, DoublyConnectedEdgeList convexShape) {
         ArrayList<DCVertex> verticesConvex = (ArrayList<DCVertex>) convexShape.getVertices().clone();
-        for(DCFace face : decomposition.getFaces()){
+        for (DCFace face : decomposition.getFaces()) {
             ArrayList<DCVertex> verticesFace = decomposition.getVerticesOfFace(face);
+            convoluted.add(minkowski(verticesFace, verticesConvex));
+        }
+    }
+
+    public MinkowskiSum(PolygonGroup pg, DoublyConnectedEdgeList convexShape) {
+        ArrayList<DCVertex> verticesConvex = (ArrayList<DCVertex>) convexShape.getVertices().clone();
+        for (var face : pg.polygons()) {
+            ArrayList<DCVertex> verticesFace = new ArrayList<>(face.points().stream().map(DCVertex::new).toList());
             convoluted.add(minkowski(verticesFace, verticesConvex));
         }
     }
@@ -81,7 +90,7 @@ public class MinkowskiSum implements Drawable, CalculationResult {
         for (DoublyConnectedEdgeList edgeList : convoluted) {
             DCFace face = edgeList.getFaces().get(0);//should have on and only one face
             rand.setSeed(face.hashCode());
-            applet.fill(color[0], color[1], color[2],100f);
+            applet.fill(color[0], color[1], color[2], 100f);
             applet.beginShape();
             for (DCVertex vertex : edgeList.getVerticesOfFace(face)) {
                 float x = vertex.getPoint().x;
@@ -96,7 +105,7 @@ public class MinkowskiSum implements Drawable, CalculationResult {
     @Override
     public int getFaceCount() {
         int count = 0;
-        for (var dcel: convoluted) {
+        for (var dcel : convoluted) {
             count += dcel.getFaceCount();
         }
         return count;
@@ -105,7 +114,7 @@ public class MinkowskiSum implements Drawable, CalculationResult {
     @Override
     public int getVertexCount() {
         int count = 0;
-        for (var dcel: convoluted) {
+        for (var dcel : convoluted) {
             count += dcel.getVertexCount();
         }
         return count;
@@ -114,7 +123,7 @@ public class MinkowskiSum implements Drawable, CalculationResult {
     @Override
     public int getHalfEdgeCount() {
         int count = 0;
-        for (var dcel: convoluted) {
+        for (var dcel : convoluted) {
             count += dcel.getHalfEdgeCount();
         }
         return count;

@@ -6,7 +6,8 @@ public enum Decompositions {
     Triangulation("Triangulation"),
     Greedy("Greedy decomposition"),
     Slab("Slab decomposition"),
-    Kd("Kd decomposition");
+    Kd("Kd decomposition"),
+    Chazelle("Chazelle decomposition");
 
 
     private final String name;

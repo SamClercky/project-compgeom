@@ -1,17 +1,21 @@
 package be.ulbvub.compgeom.ui;
 
 import be.ulbvub.compgeom.Polygon;
+import be.ulbvub.compgeom.SimplePolygon;
+import be.ulbvub.compgeom.chazelle.PatternDetector;
 import be.ulbvub.compgeom.kd.KdDecomposition;
 import be.ulbvub.compgeom.slab.SlabDecomposition;
 import be.ulbvub.compgeom.triangles.TriangleDecomposition;
+import be.ulbvub.compgeom.utils.CalculationResult;
 import be.ulbvub.compgeom.utils.DoublyConnectedEdgeList;
 import processing.core.PVector;
 
+import java.util.ArrayList;
 import java.util.Objects;
 
 public abstract class DecompositionConfig {
 
-    public abstract DoublyConnectedEdgeList decompose();
+    public abstract CalculationResult decompose();
 
     public abstract Polygon polygon();
 
@@ -193,6 +197,54 @@ public abstract class DecompositionConfig {
         @Override
         public String toString() {
             return "GreedyConfig[" +
+                    "polygon=" + polygon + ']';
+        }
+
+
+    }
+
+    public static final class ChazelleConfig extends DecompositionConfig {
+        private Polygon polygon;
+
+        public ChazelleConfig(Polygon polygon) {
+            this.polygon = polygon;
+        }
+
+        @Override
+        public PolygonGroup decompose() {
+            final var simplePolygon = new SimplePolygon(this.polygon.points());
+            final var patternDetector = new PatternDetector(simplePolygon);
+            patternDetector.detectPatterns();
+            final var splitPolygon = new ArrayList<>(patternDetector.partition().stream().map(p -> new Polygon(new ArrayList<>(p.points()))).toList());
+
+            return new PolygonGroup(splitPolygon);
+        }
+
+        public Polygon polygon() {
+            return polygon;
+        }
+
+        @Override
+        public void setPolygon(Polygon polygon) {
+            this.polygon = polygon;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) return true;
+            if (obj == null || obj.getClass() != this.getClass()) return false;
+            var that = (ChazelleConfig) obj;
+            return Objects.equals(this.polygon, that.polygon);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(polygon);
+        }
+
+        @Override
+        public String toString() {
+            return "ChazelleConfig[" +
                     "polygon=" + polygon + ']';
         }
 

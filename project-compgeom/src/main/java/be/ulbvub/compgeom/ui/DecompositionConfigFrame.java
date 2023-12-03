@@ -33,6 +33,7 @@ public class DecompositionConfigFrame extends JFrame {
                 case Greedy -> config.add(new GreedyConfigPane());
                 case Slab -> config.add(new SlabConfigPane());
                 case Kd -> config.add(new KdConfigPane());
+                case Chazelle -> config.add(new ChazelleConfigPane());
                 default -> {
                 }
             }
@@ -110,6 +111,13 @@ public class DecompositionConfigFrame extends JFrame {
         @Override
         public DecompositionConfig config(Polygon polygon) {
             return new DecompositionConfig.GreedyConfig(polygon);
+        }
+    }
+
+    public static class ChazelleConfigPane extends ConfigPanel {
+        @Override
+        public DecompositionConfig config(Polygon polygon) {
+            return new DecompositionConfig.ChazelleConfig(polygon);
         }
     }
 }

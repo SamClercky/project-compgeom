@@ -11,6 +11,12 @@ public record MinkowskiConfig(Polygon a, Polygon b, DecompositionConfig dConfig)
         final var dA = dConfig.decompose();
         final var dB = new DoublyConnectedEdgeList(b); // Shape B is assumed to be always convex
 
-        return new MinkowskiSum(dA, dB);
+        if (dA instanceof DoublyConnectedEdgeList dcel) {
+            return new MinkowskiSum(dcel, dB);
+        } else if (dA instanceof PolygonGroup pg) {
+            return new MinkowskiSum(pg, dB);
+        } else {
+            throw new RuntimeException("Not supported decomposition result");
+        }
     }
 }
