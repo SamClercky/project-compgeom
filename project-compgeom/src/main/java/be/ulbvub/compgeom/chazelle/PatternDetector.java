@@ -124,6 +124,103 @@ public class PatternDetector {
 		return Optional.of(new PVector[] {from, bestT});
 	}
 
+	public List<SimplePolygon> partition() {
+		final List<SimplePolygon> subPolygons = new ArrayList<>();
+		//Add the original polygon in the list
+		subPolygons.add(polygon.clone());
+
+		final List<Pattern.X3Pattern> x3Patterns = xkPatterns.stream()
+				.filter(pattern -> pattern instanceof Pattern.X3Pattern)
+				.map(pattern -> (Pattern.X3Pattern) pattern)
+				.toList();
+		final List<Pattern.X2Pattern> x2Patterns = xkPatterns.stream()
+				.filter(pattern -> pattern instanceof Pattern.X2Pattern)
+				.map(pattern -> (Pattern.X2Pattern) pattern)
+				.toList();
+
+		//Start with x3 patterns
+		for(final Pattern.X3Pattern x3Pattern : x3Patterns) {
+			SimplePolygon target = null;
+
+			//Only attempt to split sub polygons that can actually be split
+			//Every time a (sub) polygon is split, this split will influence whether the other sub polygons can be split
+			for(final var subPolygon : subPolygons) {
+				if(x3Pattern.canSplit(subPolygon)) {
+					target = subPolygon;
+					break;
+				}
+			}
+			if(target != null) {
+				System.out.println("Splitting polygon " + target.points() + "using an x3");
+				final List<SimplePolygon> splitPolygons = x3Pattern.split(target);
+				System.out.println("Split: ");
+				splitPolygons.forEach(p -> System.out.println("p: " + p.points()));
+
+				int remainingNotchesInSplit = 0;
+				final int targetNotchesAmount = new NotchFinder(target).findNotches().getNotches().size();
+
+				for(final SimplePolygon split : splitPolygons) {
+					//Sum the notches of the new split
+					remainingNotchesInSplit += new NotchFinder(split).findNotches().getNotches().size();
+				}
+				System.out.println("Notches in splits: " + remainingNotchesInSplit);
+				System.out.println("Notches in original sub polygon: " + targetNotchesAmount);
+
+				//Only accept new splits if they effectively improve the solution
+				if(remainingNotchesInSplit < targetNotchesAmount) {
+					System.out.println("Improving solution");
+					System.out.println("Size: " + subPolygons.size());
+					//Remove the polygon that has been split and replace it with its split components
+					subPolygons.remove(target);
+					System.out.println("Removing target: " + subPolygons.size());
+					//Update the solution
+					subPolygons.addAll(splitPolygons);
+					System.out.println("Adding split: " + subPolygons.size());
+				}
+			}
+		}
+		//End with x2 patterns
+		for(final Pattern.X2Pattern x2Pattern : x2Patterns) {
+			SimplePolygon target = null;
+
+			for(final var subPolygon : subPolygons) {
+				if(x2Pattern.canSplit(subPolygon)) {
+					target = subPolygon;
+					break;
+				}
+			}
+			if(target != null) {
+				System.out.println("Splitting polygon " + target.points() + "using an x3");
+				final List<SimplePolygon> splitPolygons = x2Pattern.split(target);
+				System.out.println("Split: ");
+				splitPolygons.forEach(p -> System.out.println("p: " + p.points()));
+				int remainingNotchesInSplit = 0;
+				final int targetNotchesAmount = new NotchFinder(target).findNotches().getNotches().size();
+
+				for(final SimplePolygon split : splitPolygons) {
+					//Sum the notches of the new split
+					remainingNotchesInSplit += new NotchFinder(split).findNotches().getNotches().size();
+				}
+				System.out.println("Notches in splits: " + remainingNotchesInSplit);
+				System.out.println("Notches in original sub polygon: " + targetNotchesAmount);
+
+				//Only accept new splits if they effectively improve the solution
+				if(remainingNotchesInSplit < targetNotchesAmount) {
+					System.out.println("Improving solution");
+					System.out.println("Size: " + subPolygons.size());
+					//Remove the polygon that has been split and replace it with its split components
+					subPolygons.remove(target);
+					System.out.println("Removing target: " + subPolygons.size());
+					//Update the solution
+					subPolygons.addAll(splitPolygons);
+					System.out.println("Adding split: " + subPolygons.size());
+				}
+			}
+		}
+
+		return subPolygons;
+	}
+
 	public void detectPatterns() {
 		buildData();
 		detectX2Pattern();

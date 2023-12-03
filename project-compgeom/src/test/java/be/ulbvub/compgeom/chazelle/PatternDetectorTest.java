@@ -7,6 +7,7 @@ import processing.core.PVector;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class PatternDetectorTest {
 
@@ -115,11 +116,12 @@ public class PatternDetectorTest {
 		patternDetector.detectPatterns();
 		System.out.println("Data:");
 		patternDetector.displaySegments();
-		/*System.out.println(new NotchFinder(nonConvexRectangle).findNotches().getNotches());
-		final var patternDetector = new PatternDetector(nonConvexRectangle);
-		patternDetector.detectPatterns();
-		System.out.println("Data:");
-		patternDetector.displaySegments();*/
+		System.out.println("Splitting using patterns");
+		final List<SimplePolygon> splitPolygons = patternDetector.partition();
+
+		for(final SimplePolygon subPolygon : splitPolygons) {
+			System.out.println("split: " + subPolygon.points());
+		}
 	}
 
 }
