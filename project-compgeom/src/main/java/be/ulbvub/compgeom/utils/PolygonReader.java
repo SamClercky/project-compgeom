@@ -20,7 +20,8 @@ public class PolygonReader {
         Indented("Indented", "indented.poly"),
         IndentedHorizontal("Horizontal Indented", "indented-horizontal.poly"),
         SplitJoin("Split Join", "internal-split-join.poly"),
-        Saw("Saw", "zaag.poly");
+        Saw("Saw", "zaag.poly"),
+        NonConvexRect("Non-convex rectangle (Chazelle only)", "non-convex-rectangle3.poly");
 
         private String fileName;
         private String name;
