@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report: Convex decomposition of simple polygons</title>
+
+    <script type="text/javascript">
+        class Citation extends HTMLElement {
+            constructor() {
+                super();
+            }
+
+            updateHTML() {
+                switch (this.src) {
+                    case "agarwal_polygon_2002":
+                        this.textContent = `(Agarwal, 2002)`;
+                        break;
+                    case "chazelle_decomposing_1979":
+                        this.textContent = `(Chazelle, 1979)`;
+                        break;
+                    case "pharr_pbrt_2023":
+                        this.textContent = `(Pharr, 2023)`;
+                        break;
+                    default:
+                        this.textContent = `(${this.src}, nd)`;
+                        break;
+                }
+            }
+
+            connectedCallback() {
+                this.src = this.getAttribute("src") ?? "???";
+                this.updateHTML();
+            }
+
+            attributeChangedCallback(property, oldVal, newVal) {
+                console.log(property, oldVal, newVal);
+                if (oldVal === newVal) return;
+                this[property] = newVal;
+                this.updateHTML();
+            }
+
+            static get observedAttribute() {
+                return [`src`];
+            }
+        }
+
+        window.customElements.define("c-cite", Citation);
+    </script>
+
+    <style>
+        img {
+            width: 30%;
+        }
+
+        table,
+        tr,
+        td {
+            border: solid 1px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Report: Convex decomposition of simple polygons</h1>
+
+    <h2>Meta:</h2>
+
+    <ul>
+        <li>Url to git: <a href="https://github.com/SamClercky/project-compgeom">
+                https://github.com/SamClercky/project-compgeom
+            </a>
+        </li>
+        <li>Authors:
+            <ul>
+                <li>Andreas Declerck</li>
+                <li>Célian Glénaz</li>
+                <li>Mevel Gilles</li>
+            </ul>
+        </li>
+        <li>Programming language: Java</li>
+    </ul>
+
+    <div>
+        <strong>Some definitions:</strong>
+        <ul>
+            <li>
+                <strong>Steiner point:</strong> Point which is added to
+                facilitate a cut in the polygon.
+            </li>
+            <li>
+                <strong>Reflex point:</strong> Point which is pointed inward,
+                and the reason why a simple polygon is not convex.
+            </li>
+            <li>
+                <strong>Notch:</strong> Same as a reflex point, mostly used
+                in the description of the Chazelle decomposition.
+            </li>
+            <li>
+                <strong>DCEL:</strong> Doubly Connected Edge List. Structure that
+                facilitates the addition/removal/updating of various vertices/edges/faces.
+            </li>
+        </ul>
+    </div>
+
+    <h2>Description of the project</h2>
+
+    <p>
+        The project aims to investigate various algorithms for decomposing a simple polygon into its convex
+        subcomponents. Five different algorithms are explored, accompanied by an examination of their overall
+        strategies. Two approach involve avoiding the addition of extra points, commonly referred to as Steiner
+        points. The two algorithms that are discussed here within this paradigm are simple triangulation and
+        greedy decomposition. Another strategy permits the addition of extra
+        points to ease the decomposition process. For this, the Chazelle algorithm, slab
+        decomposition, and KD decomposition are going to be implemented and discussed.
+    </p>
+
+    <p>
+        To demonstrate an example of an application of the different decompositions,
+        a Minkowski sums algorithm will be implemented. The initial phase of this algorithm involves decomposing the
+        polygons, with which the sum will be calculated. Reducing the
+        number of decomposition components here will generally result in better
+        performance.
+    </p>
+
+    <p>
+        Now, a more thorough description of the application's various components and implemented algorithms will be
+        presented.
+    </p>
+
+    <h3>Doubly Connected Edge List</h3>
+    <small><strong>By Célian Glénaz and Andreas Declerck</strong></small>
+    <p>
+        Prior to initiating the implementation of any decomposition algorithm, we have to determine the most suitable
+        representation for polygons and their decompositions. In the description of the triangulation algorithm, a
+        recommended structure is proposed: a doubly connected edge list. After some research, it seems that it is the
+        best choice for our application. It accommodates complex arrangements of edges, vertices and faces that can
+        represent a decomposed polygon. Furthermore, you can easily add new edges or vertices. Finally, the structure
+        allows for efficient iteration over faces, facilitating the extraction of generated convex shapes by traversing
+        their borders.
+    </p>
+    <p>
+        We chose to implement our own DCEL class to enhance our understanding of its workings. It is composed of three
+        classes: DCFace, DCHalfEdge and DCVertex, corresponding to the fundamental components of the DCEL. The DCEL
+        class features two main methods:
+    </p>
+    <ul>
+        <li>getPrevEdgeOfFace(DCVertex, DCFace): get the previous edge of a given face in the counter-clockwise order
+            (used in triangulation)
+        </li>
+
+        <li>addVertex(DCHalfEdge, PVector): insert a vertex at a given position in a given half edge (used in KD and
+            slab decomposition)</li>
+    </ul>
+
+
+    <h3>Triangulation</h3>
+    <small><strong>By Célian Glénaz</strong></small>
+    <p>
+        Our implementation of triangulation relies on the line-sweep algorithms covered in the course. The first part
+        involves partitioning a simple polygon into multiple Y-monotone polygons by adding carefully chosen edges. At
+        the end of this stage, the boundary of each face in the DCEL is a
+        y-monotone polygon. Here is an illustrative example from our application at this stage:
+    </p>
+    <img src="figures/Ymonotone.png" alt="Y-monotone decomposition">
+    <p>
+        Then the second part is splitting these polygons into triangles by using another line sweep algorithm with a
+        stack. The result for the same polygon looks like this:
+    </p>
+    <img src="figures/triangulated.png" alt="Triangulation">
+
+    <p>
+        For our test examples, the result is the following:
+    </p>
+
+    <img src="figures/tri-curl.png">
+    <img src="figures/tri-splitjoin.png">
+    <img src="figures/tri-zaag.png">
+
+    <h3>Greedy Decomposition</h3>
+    <small><strong>By Célian Glénaz</strong></small>
+    <p>
+        This decomposition leverages the triangulation algorithm but halts as soon as there are no more reflex vertices
+        in the polygon. It is implemented by introducing a <i>greedy</i> boolean variable as an argument of the
+        triangulation methods and a <i>reflexVertices</i> list in DCEL.Upon the addition of each edge, the reflex
+        vertices are updated. If the list becomes empty, the program checks whether the greedy mode is activated, and if
+        so, it returns. The process may halt in the monotone decomposition or in any of the triangulations.
+        Nevertheless, when a reflex vertex is positioned at the bottom of the decomposed polygon, the result is the same
+        as the regular triangulation.
+    </p>
+
+    <p>
+        For our test examples, the result is the following:
+    </p>
+    <img src="figures/greedy-curl.png">
+    <img src="figures/greedy-splitjoin.png">
+    <img src="figures/greedy-zaag.png">
+
+    <h3>Slab Decomposition</h3>
+    <small><strong>By Andreas Declerck</strong></small>
+
+    <p>
+        The slab decomposition algorithm is described in <c-cite src="agarwal_polygon_2002" />.
+        It works by choosing a direction in which to cut and then, on every reflex
+        point, cutting the polygon up and down following the initial chosen
+        direction. For the implementation, only cutting along the y-axis is handled.
+    </p>
+
+    <p>
+        The way this algorithm is implemented is by taking a polygon, categorizing
+        all vertices of this simple polygon into the following categories: start, end,
+        split, join, reflex point and other points. This information is then used in a
+        sweep line algorithm that travels perpendicular to the initial direction
+        over the field with the vertices as its events. This is done to maintain a list
+        of edges above and below a certain point, so only a limited amount of edges need
+        to be tested for intersection. Once an edge above or below a reflex point has been
+        found, a cut will be made along the initially chosen direction.
+    </p>
+
+    <p>
+        For this algorithm, all events are used to update the sweep line structure, and
+        maintain an ordered list of all edges currently intersecting with the sweep line.
+        The vertices considered reflex points are the vertices that are classified as
+        either a split, a join or a reflex point.
+    </p>
+
+    <p>
+        For a time complexity analysis, categorizing all points and adding them
+        to an event queue results in O(n log n). As we need to iterate through
+        all points and then put them into a priority queue. Insertion of a cut
+        is O(E) with E the number of edges of the part of the polygon that has
+        not been cut. The final time complexity of this algorithm is then O(E n + p)
+        with E the number of edges in the polygon and n the number of events
+        that represent reflex points and p the number of events that do not
+        represent reflex points.
+    </p>
+
+    <img src="figures/type_of_points.svg" />
+
+    <img src="figures/slab-curl.png">
+    <img src="figures/slab-splitjoin.png">
+    <img src="figures/slab-zaag.png">
+
+    <h3>KD Decomposition</h3>
+    <small><strong>By Andreas Declerck</strong></small>
+
+    <p>
+        The KD decomposition is described in <c-cite src="agarwal_polygon_2002" />,
+        and has been inspired by KD trees sometimes used to accelerate
+        raytracing algorithms <c-cite src="pharr_pbrt_2023" />. The basic idea is
+        to subdivide space by first sorting all points along all axes (x,y) and
+        then each step taking the median along one of these axes and subdividing
+        along this axis through the selected point.
+    </p>
+
+    <p>
+        For the KD decomposition algorithm, this results in first finding all
+        reflex points in the polygon and sorting them along the x- and y-axes.
+        Every iteration, the median of the sorted reflex points is selected along
+        the current axis. The polygon is then cut along this axis through the
+        median point. The resulting pieces after the cut are then handled
+        recursively until no more reflex points can be found while alternating
+        the selected axis.
+    </p>
+
+    <p>
+        A invariant that needs to be taken into account, is that once a
+        reflex point has been used for a cut, it is not reused for a cut along
+        another axis.
+    </p>
+
+    <p>
+        For the time complexity analysis of this algorithm: Finding all the reflex
+        points is O(n) and sorting them along all the axis's is O(n log(n)). For
+        the meat of the algorithm, first finding the median along an axis region
+        is O(1) ((start + end) / 2). Finding one or possibly two opposite sides
+        for making a cut, is done by iterating over all the edges of the faces adjacent to
+        the current reflex point. If an edge intersects with the direction of
+        the cut, is visible from inside the polygon by the current reflex point and
+        is the closest intersection seen from the current reflex point, a cut is
+        made from the current reflex point to the intersection with the line
+        along the current axis through the current reflex point and the found
+        edge. This cut can be made in O(E) with E the number of edges in the common
+        face between the reflex point and the cut's destination. Finding the cut's
+        destination is O(FE) with F the adjacent faces to the reflex point and E
+        the number of edges in these adjacent faces. As it is not guaranteed that
+        the cut evenly divides the polygon every time, resulting in having to search
+        faces that do not really reduce in size with every cut. This leads to a worst
+        case time complexity of n*O(n)=O(n^2). But when considering more favorable
+        polygons where cutting, splits a face into two more equal parts, it can be said
+        that the amortized time becomes O(n log n).
+    </p>
+
+    <img src="figures/kd-curl.png">
+    <img src="figures/kd-splitjoin.png">
+    <img src="figures/kd-zaag.png">
+
+    <h3>Chazelle P-time decomposition algorithm</h3>
+    <small><strong>By Mevel Gilles</strong></small>
+
+    <p>
+        The Chazelle decomposition algorithm is described in <c-cite src="chazelle_decomposing_1979" />.
+        The algorithm is based on identifying patterns in the polygon, leading to an efficient decomposition using said
+        patterns. First, we must identify
+        the notches (equivalent to a reflex point) of the polygon, which will later be used as a basic component in the
+        pattern identification.
+    </p>
+
+    <p>
+        The notion of Xk-pattern is then introduced as an element interconnecting k notches, forming a set of k polygons
+        and removing all reflex points occurring at those k notches.
+        No new notch is introduced by the Xk-patterns.
+        The final solution will then be made out of all the possible Xk-patterns found in the polygon.
+    </p>
+
+    <p>
+        Only the Xk-pattern and subsequent decompositions is considered in the paper, but it is important to note that
+        Chazelle also identifies Yk-patterns.
+        These Yk-patterns are derived from the Xk-patterns and used to further improve the final decomposition.
+    </p>
+
+    <p>
+        The vast majority of the work done in this part of the project involves the pre-processing step of the Chazelle
+        algorithm.
+        This step consists in identifying specific segments and points in the polygon, by grouping together 3 different
+        notches of the polygon (named Vi, Vj, Vk in the paper).
+        One can imagine these 3 points positioned in a triangle, where other notches can sit in between each pair of
+        points. The pre-processing will then generate 2 segments between
+        each points of (Vi, Vj, Vk) in a left and right manner. For each of these points, 2 segments, l' and r'
+        (respectively left and right) are generated (following the specific procedure
+        described in the paper). For each of these segments, their intersections are also computed, and their
+        coordinates are registered as M-points. An additional sub-step requires to
+        check whether the M-points and the associated l' and r' all sit inside the polygon. All these lines and
+        intersections can be computed in O(N(P)) where N(P) denotes the number of notches in the polygon P.
+    </p>
+
+    <p>
+        All the previously computed l' and r' segments as well as M-points are used to try and identify specific
+        patterns in the polygon. 2 specific Xk-patterns are considered in the code:
+
+    <ul>
+        <li>The X2-patterns, separating the polygon into 2 sub-polygons which union reduces the number of notches by 2.
+        </li>
+        <li>The X3-patterns, separating the polygon into 4 sub-polygons which union reduces the number of notches by 3.
+        </li>
+    </ul>
+
+    It is important to note that the original intent of the X3-patterns is to introduce 3 sub-polygons, and not 4. In
+    the scope of this project, inner sub-polygons
+    (sub-polygons which have no edges in the hull of the polygon) are kept. However a 'relatively simple' procedure
+    could improve this further: Compute the center of the triangle formed by the X3-pattern (the inner sub-polygon)
+    and "push" the edges of the inner sub-polygon inwards until they all meet at the center point. This would increase
+    the area of the 3 surrounding sub-polygons without introducing any new notch and effectively remove
+    the center sub-polygon as it would simply disappear.
+    </p>
+
+    <p>
+        The final step of this part of the project is to split the polygon into its convex components using the computed
+        patterns. Again, the original intent was to make use of the Yk-patterns, but a simple greedy procedure
+        will be used instead as the amount of time required to implement the entirety of the paper was simply too much
+        for me alone. The greedy procedure will start with all the X3-patterns first, as they have
+        the potential to maximize the number of removed notches for a minimum of introduced sub-polygon. Every time a
+        new X3-pattern is considered, the algorithm verifies that this specific X3-pattern (i.e. the 3 points involved)
+        can be used to split the polygon. Every time the polygon is split into sub parts, any other X3-pattern might not
+        be usable as their points might now be scattered among different sub-polygons.
+
+        Finally, the X2-patterns are considered, following the same logic. Once all sub convex components have been
+        computed, they are returned by the algorithm.
+    </p>
+
+    <p>
+        Here is an example of the result of the Chazelle decomposition, considering only X2 and X3-patterns:
+    </p>
+
+    <img style="width: 60%;" src="figures/non-convex-rectangle-chazelle.png">
+
+    <h3>Minkowski sum algorithm</h3>
+    <small><strong>By Célian Glénaz</strong></small>
+
+    <p>
+        According to <c-cite src="agarwal_polygon_2002" />, calculating Minkowski sums can be done in three steps:
+    </p>
+    <ul>
+        <li>Decompose the input polygons <b>P</b> and <b>Q</b> into convex subpolygons <b>P1, P2, ..., Ps</b> and <b>Q1,
+                Q2, ..., Qt</b>.
+        </li>
+        <li>
+            For each i,j compute the Minkowski subsum of <b>Pi</b> and <b>Qj</b>.
+        </li>
+        <li>
+            Construct the union of all the polygons from previous step.
+        </li>
+    </ul>
+
+    <p>
+        Therefore, after choosing the decomposition algorithm, we have to compute the minkowski sum of two convex
+        polygons. <a href="https://cp-algorithms.com/geometry/minkowski.html">This article</a> explains everything we
+        need to know about this subject. They also provide this illustration:
+    </p>
+
+    <img alt="Visual" src="https://cp-algorithms.com/geometry/minkowski.gif">
+
+
+    <p>
+        When both polygon are convex, the edges of their Minkowki sum are the combined edges of both polygons, sorted by
+        polar angles. Since in a convex polygon the edges are already sorted by polar angle, we can iterate
+        simultaneously on both polygons edges and get the lower element at each iteration. To compare two edges we can
+        use the orientation of (origin, edge1, edge1+edge2).
+    </p>
+
+
+    <!-- <p>
+        For the union part, since we do not use the Minkowski sum to compute other things like collisions, we do not
+        have to implement it. We can just draw every minkowski subsum with transparency in order to help us understand
+        the result.
+    </p> -->
+
+    <p>
+        For educational purposes, the union of the Minkowski subsums where drawn individually with a transparent
+        background. This allows the observer to see how the individual parts of a polygon have been modified by the
+        summation, and shows visually the impact of the decomposition on the final result.
+    </p>
+
+    <p>
+        For the example, we took the slab decomposition of the saw pattern and calculated the Minkowski sum with a small
+        circle.
+    </p>
+    <img src="figures/slab-zaag.png">
+    <img src="figures/minkowski-slab-zaag.png">
+    <img src="figures/triangulation-curl-square.png">
+    <p>
+        The "tips" are rounded, and we can see overlaps in every edge added by
+        the decomposition. This demonstrates why the Minkowski sum is used to
+        find paths between obstacles for a moving robot. The area of the sum
+        would be an area where a round robot would hit the obstacle. The second
+        example is the Minkowski sum of the triangulation of a curved shape and
+        a small square. We selected simple forms and decompositions because
+        otherwise it becomes quite difficult to comprehend the result of the
+        Minkowski sum.
+    </p>
+
+    <h3>GUI</h3>
+    <small><strong>By Andreas Declerck</strong></small>
+
+    <p>
+        The GUI is made with Processing in Java for the drawing and interactive parts and
+        uses Swing for all other menus. It contains a custom layout engine to position
+        the buttons dynamically in the menu and displays metrics about a certain
+        decomposition.
+    </p>
+
+    <p>
+        For easy testing and experimenting, it is possible to save and reopen a polygon.
+        Saving is done by storing the points of the polygon in a custom file format.
+        Doing this allows to experiment with different types of polygons on an automated
+        testing bed.
+    </p>
+
+    <img src="figures/gui_tour.svg" style="width: 100%" />
+
+    <h2>What has been done</h2>
+
+    <ul>
+        <li>Triangulation</li>
+        <li>Slab Decomposition (except some edge cases)</li>
+        <li>Chazelle P-time decomposition (preprocessing steps)</li>
+        <li>GUI</li>
+        <li>Greedy Decomposition</li>
+        <li>KD decomposition</li>
+    </ul>
+
+    <h2>Results</h2>
+
+    <img src="figures/curl.png">
+    <img src="figures/splitjoin.png">
+    <img src="figures/zaag.png">
+
+    <h3>Decomposition results: Curl</h3>
+    <table class="result_table">
+        <tr>
+            <th>Decomposition</th>
+            <th>#vertices (before)</th>
+            <th>#vertices (decomposition)</th>
+            <th>#faces (decomposition)</th>
+            <th>#edges (decomposition)</th>
+        </tr>
+        <tr>
+            <td>Triangle</td>
+            <td>30</td>
+            <td>30</td>
+            <td>28</td>
+            <td>114</td>
+        </tr>
+        <tr>
+            <td>Greedy</td>
+            <td>30</td>
+            <td>30</td>
+            <td>28</td>
+            <td>114</td>
+        </tr>
+        <tr>
+            <td>Slab</td>
+            <td>30</td>
+            <td>45</td>
+            <td>16</td>
+            <td>120</td>
+        </tr>
+        <tr>
+            <td>KD</td>
+            <td>30</td>
+            <td>46</td>
+            <td>17</td>
+            <td>124</td>
+        </tr>
+    </table>
+
+    <h3>Decomposition results: Join/Split</h3>
+    <table class="result_table">
+        <tr>
+            <th>Decomposition</th>
+            <th>#vertices (before)</th>
+            <th>#vertices (decomposition)</th>
+            <th>#faces (decomposition)</th>
+            <th>#edges (decomposition)</th>
+        </tr>
+        <tr>
+            <td>Triangle</td>
+            <td>10</td>
+            <td>10</td>
+            <td>8</td>
+            <td>34</td>
+        </tr>
+        <tr>
+            <td>Greedy</td>
+            <td>10</td>
+            <td>10</td>
+            <td>7</td>
+            <td>32</td>
+        </tr>
+        <tr>
+            <td>Slab</td>
+            <td>10</td>
+            <td>15</td>
+            <td>6</td>
+            <td>40</td>
+        </tr>
+        <tr>
+            <td>KD</td>
+            <td>10</td>
+            <td>14</td>
+            <td>5</td>
+            <td>36</td>
+        </tr>
+    </table>
+
+    <h3>Decomposition results: Saw</h3>
+    <table class="result_table">
+        <tr>
+            <th>Decomposition</th>
+            <th>#vertices</th>
+            <th>#vertices (decomposition)</th>
+            <th>#faces (decomposition)</th>
+            <th>#edges (decomposition)</th>
+        </tr>
+        <tr>
+            <td>Triangle</td>
+            <td>18</td>
+            <td>18</td>
+            <td>16</td>
+            <td>66</td>
+        </tr>
+        <tr>
+            <td>Greedy</td>
+            <td>18</td>
+            <td>18</td>
+            <td>16</td>
+            <td>66</td>
+        </tr>
+        <tr>
+            <td>Slab</td>
+            <td>18</td>
+            <td>28</td>
+            <td>11</td>
+            <td>76</td>
+        </tr>
+        <tr>
+            <td>KD</td>
+            <td>18</td>
+            <td>29</td>
+            <td>12</td>
+            <td>80</td>
+        </tr>
+    </table>
+
+    <script type="text/javascript">
+        const tables = document.querySelectorAll(".result_table");
+
+        for (let table of tables) {
+            const rows = table.querySelectorAll("tr");
+            for (let row of rows) {
+                let numOfVert = parseInt(row.children[1].innerText);
+                let numOfVertDecom = parseInt(row.children[2].innerText);
+                let numOfFacesDecom = parseInt(row.children[3].innerText);
+                let numOfEdgesDecom = parseInt(row.children[4].innerText);
+
+                if (isNaN(numOfVert))
+                    continue; // header, skip
+
+                if (numOfVert !== numOfVertDecom) {
+                    row.children[2].innerText = `${numOfVertDecom} (${(numOfVertDecom / numOfVert * 100).toFixed(2)}%)`;
+                }
+
+                row.children[4].innerText = `${numOfEdgesDecom / 2} (${(numOfEdgesDecom / 2 / numOfVert * 100).toFixed(2)}%)`
+
+                console.log("Found:", numOfVert, numOfVertDecom, numOfEdgesDecom, numOfFacesDecom);
+            }
+        }
+    </script>
+
+    <h2>Conclusion</h2>
+
+    The triangulation algorithm is composed of fewer vertices and edges than other decompositions, but the result looks
+    less natural than slab decomposition, for example. The greedy mode doesn't provide much improvements on the test
+    shown but reduces the number of edges most of the time in other polygons. Slab and KD decompositions create less
+    faces and will therefore be more efficient for some use cases like calculating minkowski sums (on the union step).
+
+    <h2>References</h2>
+
+    <ul style="list-style: none;">
+        <li>
+            Agarwal, Pankaj K. and Flato, Eyal and Halperin, Dan. (2002).
+            <i>Polygon decomposition for efficient construction of Minkowski sums</i>.
+            Computational Geometry, 1-2, 39-61.
+            <a style="text-decoration: none;"
+                href="https://doi.org/10.1016/S0925-7721(01)00041-4">https://doi.org/10.1016/S0925-7721(01)00041-4</a>
+        </li>
+        <li>
+            Chazelle, Bernard and Dobkin, David. (1979).
+            <i>Decomposing a polygon into its convex parts</i>.
+            Proceedings of the eleventh annual ACM symposium on Theory of computing - STOC '79. ACM Press.
+            <a style="text-decoration: none;"
+                href="https://doi.org/10.1145/800135.804396">https://doi.org/10.1145/800135.804396</a>
+        </li>
+        <li>
+            Pharr, Jakob, Humphreys. (2023).
+            <i>Physically based rendering: From theory to implementation</i>.
+            <a style="text-decoration: none;" href="https://pbrt.org/">https://pbrt.org/</a>
+        </li>
+    </ul>
+</body>
+
+</html>
