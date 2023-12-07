@@ -459,6 +459,47 @@
 
     <img src="figures/gui_tour.svg" style="width: 100%" />
 
+    <h3>How to build</h3>
+    <small><strong>By Andreas Declerck</strong></small>
+
+    <p>
+        Make sure before starting that <i>JAVA_HOME</i> is set to a <i>JDK</i> more recent than 17.
+    </p>
+
+    <p>
+        Commands:
+    <pre>
+$> cd project-compgeom
+$> ./gradlew assemble
+    </pre>
+    </p>
+
+    <p>
+        Now go to the folder <i>build/distributions/</i>. Unzip <i>project-compgeom-1.0-SNAPSHOT.zip</i>.
+        Then execute the following commands:
+
+    <pre>
+$> cd project-compgeom-1.0-SNAPSHOT/project-compgeom-1.0-SNAPSHOT
+$> mkdir -p bin/natives
+$> cp -r linux-aarch64 bin/natives/linux-aarch64
+$> cp -r linux-amd64 bin/natives/linux-amd64
+$> cp -r linux-arm bin/natives/linux-arm
+$> cp -r macos-aarch64 bin/natives/macos-aarch64
+$> cp -r macos-x86_64 bin/natives/macos-x86_64
+$> cp -r windows-amd64 bin/natives/windows-amd64
+        </pre>
+    </p>
+
+    <p>
+        After this is done, you have the final application assembled, and you can run it by executing the script for
+        your platform in <i>bin/</i>.
+    </p>
+
+    <p>
+        If you only want to play with the application without making a final build, just open in <i>Intellij IDEA</i>
+        (folder <i>project-geom</i>) and run from the main method in <i>src/main/java/be/ulbvub/compgeom/Main.java</i>.
+    </p>
+
     <h2>What has been done</h2>
 
     <ul>
@@ -469,6 +510,7 @@
         <li>Greedy Decomposition</li>
         <li>KD decomposition</li>
     </ul>
+
 
     <h2>Results</h2>
 
